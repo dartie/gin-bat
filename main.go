@@ -72,7 +72,7 @@ func main() {
 	/* Serve static files */
 	r.Static("/static", "./static")
 
-	/* Load all routes from url.go file */
+	/* Load all routes from urls.go file */
 	routes(r)
 
 	// By default it serves on :8080 unless a

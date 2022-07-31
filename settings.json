@@ -1,0 +1,8 @@
+{
+    "host": "0.0.0.0",
+    "port": "9003",
+    "database_type": "sqlite3",
+    "database_connection": "./db.sqlite3",
+    "login_redirect": "/test",
+    "logout_redirect": "/login"
+}

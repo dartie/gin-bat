@@ -1,0 +1,10 @@
+{{ define "Footer" }}
+    <script>
+        var alertList = document.querySelectorAll('.alert')
+        alertList.forEach(function (alert) {
+            new bootstrap.Alert(alert)
+        })
+    </script>    
+</body>
+</html>
+{{ end }}

@@ -1,0 +1,49 @@
+{{ define "Topbar" }}
+<nav class="navbar navbar-expand-sm navbar-dark bg-dark" aria-label="Third navbar example">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/"><img style="width: 80%" class="img-fluid" src="/static/img/logo.png"
+        alt="LOGO" /></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample03"
+      aria-controls="navbarsExample03" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarsExample03">
+      <ul class="navbar-nav me-auto mb-2 mb-sm-0">
+        <!--<li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="dropdown02" data-bs-toggle="dropdown" aria-expanded="false"><img width=30px src="/static/ico/admin.png" alt="Admin">&nbsp; Admin</a>
+            <ul class="dropdown-menu" aria-labelledby="dropdown02">
+              <li><a class="dropdown-item" href="/update-db-backlog/"><img src="/static/ico/db.png" alt="">&nbsp; Update DB backlog</a></li>
+            </ul>
+          </li>-->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-bs-toggle="dropdown"
+            aria-expanded="false"><img width=30px src="/static/ico/support.png" alt="Support">&nbsp; Tickets</a>
+          <ul class="dropdown-menu" aria-labelledby="dropdown03">
+            <li><a class="dropdown-item" href="/sca-tickets/"><img src="/static/ico/sca.png" alt="SCA">&nbsp; SCA</a>
+            </li>
+            <li><a class="dropdown-item" href="/qac-tickets/"><img src="/static/ico/qac.png" alt="QAC">&nbsp; QAC</a>
+            </li>
+            <li><a class="dropdown-item" href="/kw-tickets/"><img src="/static/ico/kw.png" alt="KW">&nbsp; Klocwork</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <form>
+        <input class="form-control" type="text" placeholder="Search is coming soon..." aria-label="Search" disabled>
+      </form>
+      <ul class="navbar-nav mb-2 mb-sm-0">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-bs-toggle="dropdown" aria-expanded="false"><img width=30px src="/static/ico/support.png" alt="Support">&nbsp;</a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown03">
+            <li><a class="dropdown-item" href="/profile/">Profile</a>
+            </li>
+            <li><a class="dropdown-item" href="/logout/">Logout</a>
+            </li>
+          </ul>
+        </li>
+      </ul>      
+    </div>
+  </div>
+</nav>
+{{ end }}

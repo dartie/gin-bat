@@ -1,0 +1,135 @@
+{{ template "Header" }}
+{{ template "Imports" }}
+{{ template "Middle" }}
+{{ template "Topbar" }}
+<!-- Content -->
+<style>
+    body {
+        /* background: rgb(99, 39, 120) */
+    }
+    .form-control:focus {
+        box-shadow: none;
+        /* border-color: #BA68C8 */
+    }
+    .profile-button {
+        /* background: rgb(99, 39, 120); */
+        box-shadow: none;
+        border: none
+    }
+    .profile-button:hover {
+        /* background: #682773 */
+    }
+    .profile-button:focus {
+        /* background: #682773; */
+        box-shadow: none
+    }
+    .profile-button:active {
+        /* background: #682773; */
+        box-shadow: none
+    }
+    .back:hover {
+        /* color: #682773; */
+        cursor: pointer
+    }
+    .labels {
+        font-size: 15px;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+    .add-experience:hover {
+        /* background: #BA68C8; */
+        color: #fff;
+        cursor: pointer;
+        /* border: solid 1px #BA68C8 */
+    }
+</style>
+    
+    <link href="/static/css/overlay.css" rel="stylesheet">
+    
+    <form action="/create-user/" method="post" enctype="multipart/form-data">
+        <div class="container rounded bg-white mt-5 mb-5">
+            <div class="row">
+    
+                <!-- Left column with profile picture -->
+                <div class="col-md-3 border-right">
+                    <div id="profilePic" class="d-flex flex-column align-items-center text-center p-3 py-5">
+                        <div class="container-overlay">
+                            <img id="profile_pic" width="150px" style="cursor:pointer;" class="image" onclick="document.getElementById('upload_profile_pic').click()" src="https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg" alt="Avatar">
+                            
+                            <div class="middle">
+                                <!--<div class="text">John Doe</div>-->
+                                <img class="" src="/static/ico/camera.svg" style="cursor:pointer" onclick="document.getElementById('upload_profile_pic').click()" width="40%"/>
+                            </div>
+                        </div>
+                            <span class="font-weight-bold">First Name - Last Name</span>
+                            <span class="text-black-50">Email</span>
+                    </div>
+                    <input name="upload_profile_pic" id="upload_profile_pic" type="file" style="display: none"/>
+                </div>
+    
+                <!-- Central column with fields -->
+                <div class="col-md-5 border-right">
+                    <div class="p-3 py-5">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="d-inline text-right">Profile</h4>
+    
+                        </div>  
+                        <div id="credentials" class="row mt-3">
+                            <div class="col-md-12"><label class="labels">User</label><input id="username" name="username" type="text" class="form-control" placeholder="username" autocomplete="new-password" value=""></div>
+                            <div class="col-md-12"><label class="labels">Password</label><input id="password" name="password" type="password" class="form-control" placeholder="password" autocomplete="new-password" value=""></div>
+                        </div>
+                        <div id="nameInfo" class="row mt-2">
+                            <div class="col-md-6"><label class="labels">First name</label><input name="name" type="text" class="form-control" placeholder="First Name" value=""></div>
+                            <div class="col-md-6"><label class="labels">Last name</label><input name="surname" type="text" class="form-control" placeholder="Last Name" value=""></div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12"><label class="labels">Phone</label><input name="mobile" type="text" class="form-control" placeholder="Phone number" value=""></div>
+                            <div class="col-md-12"><label class="labels">Email</label><input name="email" type="email" class="form-control" placeholder="Email" value=""></div>
+                            <div class="col-md-12">
+                                <label class="labels" for="foo">Birthday &nbsp;&nbsp;</label>
+                                <div class="input-group mt-2">
+                                    <input name="birthday" id="birthday" type="text" class="form-control border rounded" readonly value="Birthday" style="background-color: white;">
+                                    <span style="cursor: pointer" class="input-group-text"><img onclick="myTest()" src="/static/ico/date.svg" style="width: 20px" alt=""></span>
+                                </div>
+                            </div>
+                        </div>  
+                        <div class="mt-5 text-center"><button type="submit" class="btn btn-primary profile-button" type="button" onclick="document.getElementsByName('username')[0].disabled = false;">Create profilo</button></div> <!-- TODO: switch to Save profile in case of edit mode -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <script>
+        let mode = "mode";
+        /* Date element */
+        const elem = document.querySelector('input[name="birthday"]');
+        const datepicker = new Datepicker(elem, {
+            autohide: true,
+            clearBtn: true,
+            daysOfWeekHighlighted: [0, 6],
+            format: "dd/mm/yyyy",
+            language: "it",
+            todayHighlight: true,
+            weekStart: 1,
+            //defaultViewDate: "01/09/1980",
+            todayBtn: true,
+        });
+
+        /* Profile picture upload element */
+        let imgInputElement2 = document.getElementById("upload_profile_pic");
+        let img2 = document.getElementById("profile_pic");
+        window.addEventListener('load', function() {
+            imgInputElement2.addEventListener('change', function () {
+                if (this.files && this.files[0]) {
+                    img2.onload = () => {
+                        URL.revokeObjectURL(img2.src);  // no longer needed, free memory
+                    }
+                    img2.src = URL.createObjectURL(this.files[0]); // set src to blob url
+                }
+            });
+        });
+
+    </script>
+{{ template "Footer" }}
+</body>
+</html>

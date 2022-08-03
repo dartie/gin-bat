@@ -18,7 +18,11 @@ func getPersonById(c *gin.Context) {
 }
 
 func addPerson(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "addPerson Called"})
+	userMap := getCurrentUserMap(c)
+	//fmt.Println(userinfo.Username)
+
+	//c.JSON(http.StatusOK, gin.H{"message": "addPerson Called", "User": userinfo})
+	c.HTML(http.StatusOK, "profile.html", gin.H{"User": userMap})
 }
 
 func updatePerson(c *gin.Context) {

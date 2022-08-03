@@ -1,6 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"encoding/base64"
+	"fmt"
+	"log"
+	"reflect"
+)
 
 type User struct {
 	Id         int    `json:"id"`
@@ -17,6 +22,31 @@ type User struct {
 	Role       string `json:"role"`
 	IsAdmin    bool   `json:"is_admin"`
 	Active     bool   `json:"active"`
+}
+
+func (u *User) getFields() []string {
+	var fields []string
+	t := reflect.TypeOf(u)
+
+	for i := 0; i < t.NumField(); i++ {
+		fields = append(fields, t.Field(i).Name)
+	}
+	return fields
+}
+
+func (u *User) getUserById(Id int) error {
+	query := "SELECT * FROM User WHERE Id=?;"
+	row := db.QueryRow(query, Id)
+	err := row.Scan(&u.Id, &u.Username, &u.Password, &u.FirstName, &u.LastName, &u.Email, &u.Birthday, &u.Picture, &u.Phone, &u.DateJoined, &u.LastLogin, &u.Role, &u.IsAdmin, &u.Active)
+
+	// Encode image (BLOB) to base64 string for displaying it in the html template
+	u.Picture = base64.StdEncoding.EncodeToString([]byte(u.Picture))
+
+	if err != nil {
+		log.Panic("getUser() error selecting User, err:", err)
+		return err
+	}
+	return nil
 }
 
 func (u *User) getUserByUsername() error {

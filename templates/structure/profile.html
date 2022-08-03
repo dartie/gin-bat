@@ -1,0 +1,201 @@
+{{ template "Header" }}
+{{ template "Imports" }}
+{{ template "Middle" }}
+{{ template "Topbar" }}
+<!-- Content -->
+<style>
+    body {
+        /* background: rgb(99, 39, 120) */
+    }
+    .form-control:focus {
+        box-shadow: none;
+        /* border-color: #BA68C8 */
+    }
+    .profile-button {
+        /* background: rgb(99, 39, 120); */
+        box-shadow: none;
+        border: none
+    }
+    .profile-button:hover {
+        /* background: #682773 */
+    }
+    .profile-button:focus {
+        /* background: #682773; */
+        box-shadow: none
+    }
+    .profile-button:active {
+        /* background: #682773; */
+        box-shadow: none
+    }
+    .back:hover {
+        /* color: #682773; */
+        cursor: pointer
+    }
+    .labels {
+        font-size: 15px;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+    .add-experience:hover {
+        /* background: #BA68C8; */
+        color: #fff;
+        cursor: pointer;
+        /* border: solid 1px #BA68C8 */
+    }
+</style>
+    
+    <link href="/static/css/overlay.css" rel="stylesheet">
+    
+    <form id="profileForm" action="/create-user/" method="post" enctype="multipart/form-data">
+        <div class="container rounded bg-white mt-5 mb-5">
+            <div class="row">
+    
+                <!-- Left column with profile picture -->
+                <div class="col-md-3 border-right">
+                    <div id="profilePic" class="d-flex flex-column align-items-center text-center p-3 py-5">
+                        <div class="container-overlay" style="cursor:pointer;">
+                            <img id="profile_pic" width="150px" class="image" onclick="document.getElementById('upload_profile_pic').click()" src="https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg" alt="Avatar">
+                            
+                            <div class="middle">
+                                <!--<div class="text">John Doe</div>-->
+                                <img class="" src="/static/ico/camera.svg" style="cursor:pointer" onclick="document.getElementById('upload_profile_pic').click()" width="40%"/>
+                            </div>
+                        </div>
+                            <span class="font-weight-bold">{{.User.first_name}} {{.User.last_name}}</span>
+                            <span class="text-black-50">{{.User.email}}</span>
+                    </div>
+                    <input name="upload_profile_pic" id="upload_profile_pic" type="file" style="display: none"/>
+                </div>
+    
+                <!-- Central column with fields -->
+                <div class="col-md-5 border-right">
+                    <div class="p-3 py-5">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="d-inline text-right" id="headerText">Profile</h4>
+    
+                        </div>  
+                        <div id="credentials" class="row mt-3">
+                            <div class="col-md-12"><label class="labels">User</label><input id="username" name="username" type="text" class="form-control" placeholder="username" autocomplete="new-password" value=""></div>
+                            <div class="col-md-12"><label class="labels">Password</label><input id="password" name="password" type="password" class="form-control" placeholder="password" autocomplete="new-password" value=""></div>
+                        </div>
+                        <div id="nameInfo" class="row mt-2">
+                            <div class="col-md-6"><label class="labels">First name</label><input id="first_name" name="first_name" type="text" class="form-control" placeholder="First Name" value=""></div>
+                            <div class="col-md-6"><label class="labels">Last name</label><input id="last_name" name="last_name" type="text" class="form-control" placeholder="Last Name" value=""></div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12"><label class="labels">Phone</label><input id="mobile" name="mobile" type="text" class="form-control" placeholder="Phone number" value=""></div>
+                            <div class="col-md-12"><label class="labels">Email</label><input id="email" name="email" type="email" class="form-control" placeholder="Email" value=""></div>
+                            <div class="col-md-12">
+                                <label class="labels" for="foo">Birthday &nbsp;&nbsp;</label>
+                                <div class="input-group mt-2">
+                                    <input name="birthday" id="birthday" type="text" class="form-control border rounded" readonly value="Birthday" style="background-color: white;">
+                                    <span style="cursor: pointer" class="input-group-text"><img onclick="" src="/static/ico/date.svg" style="width: 20px" alt=""></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="isAdmin" id="name">
+                                <label class="form-check-label" for="isAdmin"> Admin </label>
+                            </div>
+                        </div>
+                        <div class="mt-5 text-center"><button id="submit" type="submit" class="btn btn-primary profile-button" type="button" onclick="document.getElementsByName('username')[0].disabled = false;">Save</button></div> <!--Text changed by javascript, see mode in <script>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <script>
+        let mode = "{{.mode}}";
+
+        /* Date element */
+        const elem = document.querySelector('input[name="birthday"]');
+        const datepicker = new Datepicker(elem, {
+            autohide: true,
+            clearBtn: true,
+            daysOfWeekHighlighted: [0, 6],
+            format: "dd/mm/yyyy",
+            language: "it",
+            todayHighlight: true,
+            weekStart: 1,
+            //defaultViewDate: "01/09/1980",
+            todayBtn: true,
+        });
+
+        /* Profile picture upload element */
+        let imgInputElement2 = document.getElementById("upload_profile_pic");
+        let img2 = document.getElementById("profile_pic");
+        window.addEventListener('load', function() {
+            imgInputElement2.addEventListener('change', function () {
+                if (this.files && this.files[0]) {
+                    img2.onload = () => {
+                        URL.revokeObjectURL(img2.src);  // no longer needed, free memory
+                    }
+                    img2.src = URL.createObjectURL(this.files[0]); // set src to blob url
+                }
+            });
+        });
+
+        /* Load defaults */
+        // Fill input info
+        document.getElementById("username").value = "{{.User.username}}";
+        document.getElementById("password").value =  "";
+        document.getElementById("first_name").value =  "{{.User.first_name}}";
+        document.getElementById("last_name").value =  "{{.User.last_name}}";
+        document.getElementById("mobile").value =  "{{.User.phone}}";
+        document.getElementById("email").value =  "{{.User.email}}";
+        let profile_picture = "{{.User.picture}}";
+        if (profile_picture) {
+            document .getElementById('profile_pic').src = 'data:image/png;base64,' + profile_picture;
+        } else {
+            document .getElementById('profile_pic').src = '/static/img/avatar.jpg';
+        }
+        let birthday = new Date('{{ .User.birthday }}');
+        datepicker.setDate(birthday);
+        document.getElementById("isAdmin").checked = {{.User.is_admin}};
+
+
+        // hugo notation: {{ if eq .mode "view" }} Edit profile {{ else if eq .mode "edit" }} Save profile {{ else }} Create user {{end}}
+        // Submit button
+        submitButtonElement = document.getElementById("submit")
+        profileFormElement = document.getElementById("profileForm")
+        headerTextElement = document.getElementById("headerText")
+        inputsElement = document.getElementsByTagName("input");
+        containerOverlayElements = document.getElementsByClassName("container-overlay");
+
+        if (mode === "create") {
+            // mode = create 
+            submitButtonElement.textContent = "Create user"
+            headerTextElement.textContent = "Create user"
+            profileFormElement.action = "/create-profile"
+
+        } else if (mode === "edit") {
+            submitButtonElement.textContent = "Save profile"
+            headerTextElement.textContent = "Edit profile"
+            profileFormElement.action = "/create-profile"
+
+        } else {
+            // mode = view
+            submitButtonElement.textContent = "Edit profile"
+            headerTextElement.textContent = "Profile"
+            profileFormElement.action = "/edit-profile"
+            profileFormElement.method = "get"
+            
+            for (let i=0; i < inputsElement.length; i++ ) {
+                // disable text elements and set grey background
+                inputsElement[i].disabled = true;
+                if (inputsElement[i].type == "text") {
+                    inputsElement[i].style.backgroundColor = "#e9ecef";
+                }
+            }
+            
+            for (let i=0; i < containerOverlayElements.length; i++ ) {
+                // disable any possibility to select image for profile picture
+                containerOverlayElements[i].style.cursor = "default";
+                containerOverlayElements[i].classList.remove("container-overlay")
+            }
+        }
+    </script>
+{{ template "Footer" }}
+</body>
+</html>

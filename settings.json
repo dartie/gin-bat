@@ -3,6 +3,6 @@
     "port": "9003",
     "database_type": "sqlite3",
     "database_connection": "./db.sqlite3",
-    "login_redirect": "/test",
+    "login_redirect": "/",
     "logout_redirect": "/login"
 }

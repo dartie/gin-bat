@@ -46,4 +46,59 @@
     </div>
   </div>
 </nav>
+
+<!-- Feedback Alert Element -->
+<div id="feedback-div">
+
+</div>
+
+<!-- Feedback Alert Script -->
+<script>
+  const svgInfo = `<svg class="bi flex-shrink-0 me-2" role="img" aria-label="Info:"><use xlink:href="#info-fill"></use></svg>`;
+  const svgCheck = `<svg class="bi flex-shrink-0 me-2" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"></use></svg>`;
+  const svgDanger = `<svg class="bi flex-shrink-0 me-2" role="img" aria-label="Warning:"><use xlink:href="#exclamation-triangle-fill"></use></svg>`;
+  
+  function raiseAlert(status, message) {
+    switch(status) {
+      case "0":
+        statusClass = "success";
+        icon = svgCheck;
+        break;
+      case "1":
+        statusClass = "danger";
+        icon = svgDanger;
+        break;
+      case "2":
+        statusClass = "warning";
+        icon = svgDanger;
+        break;
+      default:
+        statusClass = "info";
+        icon = svgInfo;
+    }
+
+    var alertSnippet = [
+      '<div class="alert alert-' + statusClass + ' d-flex align-items-center alert-dismissible fade show" role="alert">',
+      icon,
+      '<div>',
+      message,
+      '  </div>',
+      '  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+      '</div>',
+    ].join('\n') 
+    let feedbackDivElement = document.getElementById("feedback-div");
+    feedbackDivElement.innerHTML += alertSnippet;
+  }
+  
+  {{with .Feedback}}
+  feedbackList = {{.Feedback}};  // "Message": "Status"
+  {{else}}
+  feedbackList = {};  // "Message": "Status"
+  {{end}}
+
+  for (const [message, status] of Object.entries(feedbackList)) {
+    raiseAlert(status, message);
+  }
+</script>
+
 {{ end }}

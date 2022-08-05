@@ -4,17 +4,17 @@ DROP TABLE IF EXISTS User;
 /* Create "User" Table */ 
 CREATE TABLE User (
     id INTEGER PRIMARY KEY,
-    username TEXT,  
-	password TEXT,
-	first_name TEXT,
-	last_name TEXT,  
-	email TEXT,     
-	birthday TEXT, 
-	picture BLOB,   
-	phone TEXT,     
-	date_joined TEXT,
-	last_login TEXT, 
-	role TEXT,      
+    username TEXT NOT NULL,  
+	password TEXT NOT NULL,
+	first_name TEXT NOT NULL,
+	last_name TEXT NOT NULL,  
+	email TEXT NOT NULL,     
+	birthday TEXT NOT NULL, 
+	picture BLOB NOT NULL,   
+	phone TEXT NOT NULL,     
+	date_joined TEXT NOT NULL,
+	last_login TEXT NOT NULL, 
+	role TEXT NOT NULL,      
 	is_admin INTEGER NOT NULL,
 	active INTEGER NOT NULL
 );

@@ -1,6 +1,6 @@
-{{ template "Header" }}
-{{ template "Imports" }}
-{{ template "Middle" }}
+{{ template "Header"  . }}
+{{ template "Imports" . }}
+{{ template "Middle"  . }}
 <!-- Content -->
 <style>
     @import url("https://fonts.googleapis.com/css?family=Lato");
@@ -97,6 +97,6 @@
 
 <a class="btn btn-danger" href="javascript:history.back()">Go Back</a>
 
-{{ template "Footer" }}
+{{ template "Footer" . }}
 </body>
 </html>

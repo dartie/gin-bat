@@ -1,7 +1,7 @@
-{{ template "Header" }}
-{{ template "Imports" }}
-{{ template "Middle" }}
-{{ template "Topbar" }}
+{{ template "Header"  . }}
+{{ template "Imports" . }}
+{{ template "Middle"  . }}
+{{ template "Topbar"  . }}
 <!-- Content -->
 <style>
     body {
@@ -45,6 +45,6 @@
         </form>
     </main>
 </div>
-{{ template "Footer" }}
+{{ template "Footer" . }}
 </body>
 </html>

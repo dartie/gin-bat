@@ -1,7 +1,7 @@
-{{ template "Header" }}
-{{ template "Imports" }}
-{{ template "Middle" }}
-{{ template "Topbar" }}
+{{ template "Header"  . }}
+{{ template "Imports" . }}
+{{ template "Middle"  . }}
+{{ template "Topbar"  . }}
 <!-- Content -->
 <style>
     body {
@@ -196,6 +196,6 @@
             }
         }
     </script>
-{{ template "Footer" }}
+{{ template "Footer" . }}
 </body>
 </html>

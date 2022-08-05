@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/gob"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -55,7 +56,16 @@ func main() {
 	defer db.Close()
 
 	/* Initialize Gin */
-	r = gin.Default()
+	r := gin.Default()
+
+	/* Initialize Session */
+	// gob.Register(User{}) // Register the User structure
+	// store := cookie.NewStore([]byte("snaosnca"))
+	// r.Use(sessions.Sessions("SESSIONID", store))
+
+	store.Options.HttpOnly = true // since we are not accessing any cookies w/ JavaScript, set to true
+	store.Options.Secure = true   // requires secuire HTTPS connection
+	gob.Register(&User{})
 
 	/* Load templates */
 	//r.LoadHTMLGlob("templates/**/*")

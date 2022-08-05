@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -62,10 +61,6 @@ func isAdmin(c *gin.Context) {
 
 // auth middleware checks if logged in by looking at session
 func auth(c *gin.Context) {
-	store.Options.HttpOnly = true // since we are not accessing any cookies w/ JavaScript, set to true
-	store.Options.Secure = true   // requires secuire HTTPS connection
-	gob.Register(&User{})
-
 	nextUrl := c.Request.RequestURI
 
 	session, _ := store.Get(c.Request, "session")

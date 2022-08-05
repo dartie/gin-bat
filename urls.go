@@ -31,7 +31,7 @@ func routes(r *gin.Engine) {
 	r.GET("/logout", getLogoutHandler)
 
 	// Register
-	admin.GET("/register", func(c *gin.Context) { c.HTML(http.StatusOK, "profile.html", nil) })
+	admin.GET("/register", func(c *gin.Context) { c.HTML(http.StatusOK, "profile.html", gin.H{"mode": "create"}) })
 
 	// Profile
 	protected.GET("/profile", func(c *gin.Context) {
@@ -80,13 +80,13 @@ VALUES
 		var status string
 		if sqlErr == nil {
 			message = fmt.Sprintf("User \"%s\" - ID = \"%s\" has been created successfully", username, recordId)
-			status = "success"
+			status = "0"
 		} else {
 			message = fmt.Sprintf("Issues creating user %s", username)
-			status = "danger"
+			status = "1"
 		}
 
-		c.HTML(http.StatusOK, "home.html", gin.H{"User": userInfoMap, "feedback": map[string]string{"massage": message, "status": status}})
+		c.HTML(http.StatusOK, "home.html", gin.H{"User": userInfoMap, "Feedback": map[string]string{message: status}})
 	})
 
 	// Edit Profile

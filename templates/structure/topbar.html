@@ -90,10 +90,10 @@
     feedbackDivElement.innerHTML += alertSnippet;
   }
   
-  {{with .Feedback}}
+  {{if .Feedback}}
   feedbackList = {{.Feedback}};  // "Message": "Status"
   {{else}}
-  feedbackList = {};  // "Message": "Status"
+  feedbackList = {};
   {{end}}
 
   for (const [message, status] of Object.entries(feedbackList)) {

@@ -64,6 +64,8 @@ func routes(r *gin.Engine) {
 			defer file.Close()
 			profileData, err = ioutil.ReadAll(file)
 			checkErr(err)
+		} else {
+			profileData = []uint8{0}
 		}
 
 		sqlInsertString := fmt.Sprintf(`INSERT INTO User( 
@@ -74,12 +76,16 @@ VALUES
 `)
 		sqlCommand, err := db.Prepare(sqlInsertString)
 		checkErr(err)
-		recordId, sqlErr := sqlCommand.Exec(username, password, firstName, lastName, email, birthday, profileData, phone, "", "", "", true, true)
+		sqlResult, sqlErr := sqlCommand.Exec(username, password, firstName, lastName, email, birthday, profileData, phone, "", "", "", true, true)
 
 		var message string
 		var status string
 		if sqlErr == nil {
-			message = fmt.Sprintf("User \"%s\" - ID = \"%s\" has been created successfully", username, recordId)
+			recordId, err := sqlResult.LastInsertId()
+			if err != nil {
+				recordId = 0
+			}
+			message = fmt.Sprintf("User \"%s\" - Id = \"%d\" has been created successfully", username, recordId)
 			status = "0"
 		} else {
 			message = fmt.Sprintf("Issues creating user %s", username)

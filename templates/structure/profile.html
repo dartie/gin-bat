@@ -145,7 +145,7 @@
         document.getElementById("mobile").value =  "{{.User.phone}}";
         document.getElementById("email").value =  "{{.User.email}}";
         let profile_picture = "{{.User.picture}}";
-        if (profile_picture) {
+        if (profile_picture && profile_picture != "AA==") {  // AA=== is the result of byte 0 in the database, in case the field is set to NOT NULL
             document .getElementById('profile_pic').src = 'data:image/png;base64,' + profile_picture;
         } else {
             document .getElementById('profile_pic').src = '/static/img/avatar.jpg';

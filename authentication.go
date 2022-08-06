@@ -41,6 +41,17 @@ func isAuthenticated(handlerFunc func(*gin.Context), c *gin.Context) {
 	auth(c)
 }
 
+func isLoggedIn(c *gin.Context) bool {
+	_, err := c.Cookie("session_token")
+
+	if err == http.ErrNoCookie {
+		// user NOT logged in
+		return false
+	}
+
+	return true
+}
+
 // middleware for checking whether the user is admin
 func isAdmin(c *gin.Context) {
 	userMap := getCurrentUserMap(c)

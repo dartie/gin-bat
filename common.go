@@ -5,12 +5,25 @@ import (
 	"log"
 	"regexp"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 func checkErr(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getCheckBoxValue(c *gin.Context, field string) bool {
+	fieldValue := c.PostForm(field)
+	var fieldValueBool bool
+	if fieldValue == "" {
+		fieldValueBool = false
+	} else {
+		fieldValueBool = true
+	}
+	return fieldValueBool
 }
 
 func map2(data []string, f func(string) string) []string {

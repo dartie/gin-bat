@@ -55,6 +55,7 @@ func routes(r *gin.Engine) {
 		phone := c.DefaultPostForm("mobile", "")
 		email := c.DefaultPostForm("email", "")
 		birthday := c.DefaultPostForm("birthday", "")
+		isAdmin := getCheckBoxValue(c, "isAdmin")
 		picture, _ := c.FormFile("upload_profile_pic")
 
 		var profileData []byte
@@ -76,7 +77,7 @@ VALUES
 `)
 		sqlCommand, err := db.Prepare(sqlInsertString)
 		checkErr(err)
-		sqlResult, sqlErr := sqlCommand.Exec(username, password, firstName, lastName, email, birthday, profileData, phone, "", "", "", true, true)
+		sqlResult, sqlErr := sqlCommand.Exec(username, password, firstName, lastName, email, birthday, profileData, phone, "", "", "", isAdmin, true)
 
 		var message string
 		var status string

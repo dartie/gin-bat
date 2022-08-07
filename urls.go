@@ -59,6 +59,22 @@ func routes(r *gin.Engine) {
 		isAdmin := getCheckBoxValue(c, "isAdmin")
 		picture, _ := c.FormFile("upload_profile_pic")
 
+		var message string
+		var status string
+
+		// Check if new profile already exists
+		key := username
+		query := "SELECT username from User where username = ?"
+		row := db.QueryRow(query, key)
+		var dbid interface{}
+		err := row.Scan(&dbid)
+		if err == nil {
+			message = fmt.Sprintf("User %s already exists", username)
+			status = "2"
+			c.HTML(http.StatusOK, "home.html", gin.H{"User": userInfoMap, "Feedback": map[string]string{message: status}, "Url": "/"})
+			return
+		}
+
 		var profileData []byte
 		if picture != nil {
 			file, err := picture.Open()
@@ -80,8 +96,6 @@ VALUES
 		checkErr(err)
 		sqlResult, sqlErr := sqlCommand.Exec(username, password, firstName, lastName, email, birthday, profileData, phone, "", "", "", isAdmin, true)
 
-		var message string
-		var status string
 		if sqlErr == nil {
 			recordId, err := sqlResult.LastInsertId()
 			if err != nil {
@@ -94,7 +108,7 @@ VALUES
 			status = "1"
 		}
 
-		c.HTML(http.StatusOK, "home.html", gin.H{"User": userInfoMap, "Feedback": map[string]string{message: status}})
+		c.HTML(http.StatusOK, "home.html", gin.H{"User": userInfoMap, "Feedback": map[string]string{message: status}, "Url": "/"})
 	})
 
 	// Edit Profile

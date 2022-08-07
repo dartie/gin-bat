@@ -74,6 +74,7 @@ vertical-align: text-bottom;
 /* Topbar*/
 .avatar {
     border-radius: 50%;
+    width: 40px;
 }
 
 /* Set icons in dropdown */

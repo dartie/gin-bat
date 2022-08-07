@@ -4,6 +4,12 @@
         alertList.forEach(function (alert) {
             new bootstrap.Alert(alert)
         })
+    </script>
+    <script>
+        {{- /*% Gin-Redirect does not support variables, so in order to render a page and redirect, use the below javascript workaround %*/ -}}
+        {{ if .Url}}
+        window.history.pushState("", "", '{{.Url}}');
+        {{ end }}
     </script>    
 </body>
 </html>

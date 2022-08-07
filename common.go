@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"regexp"
 	"strings"
@@ -24,6 +25,17 @@ func getCheckBoxValue(c *gin.Context, field string) bool {
 		fieldValueBool = true
 	}
 	return fieldValueBool
+}
+
+func dateToDbFormat(fieldDate string) string {
+	var format = "%s-%s-%s"
+	fieldDateSplit := strings.Split(fieldDate, "/")
+	var dateDbFormat string
+	if len(fieldDateSplit) == 3 {
+		dateDbFormat = fmt.Sprintf(format, fieldDateSplit[2], fieldDateSplit[1], fieldDateSplit[0])
+	}
+
+	return dateDbFormat
 }
 
 func map2(data []string, f func(string) string) []string {

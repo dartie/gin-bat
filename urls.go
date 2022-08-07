@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -69,12 +68,12 @@ func routes(r *gin.Engine) {
 			profileData = []uint8{0}
 		}
 
-		sqlInsertString := fmt.Sprintf(`INSERT INTO User( 
+		sqlInsertString := `INSERT INTO User( 
 Id, username, password, first_name, last_name, email, birthday, picture, phone, date_joined, last_login, role, is_admin, active
 )
 VALUES
 (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`)
+`
 		sqlCommand, err := db.Prepare(sqlInsertString)
 		checkErr(err)
 		sqlResult, sqlErr := sqlCommand.Exec(username, password, firstName, lastName, email, birthday, profileData, phone, "", "", "", isAdmin, true)
@@ -105,45 +104,48 @@ VALUES
 		lastName := c.DefaultPostForm("last_name", "")
 		phone := c.DefaultPostForm("mobile", "")
 		email := c.DefaultPostForm("email", "")
-		birthday := c.DefaultPostForm("birthday", "")
+		birthday := dateToDbFormat(c.DefaultPostForm("birthday", ""))
+		isAdmin := getCheckBoxValue(c, "isAdmin")
 		picture, _ := c.FormFile("upload_profile_pic")
 
 		var profileData []byte
+		var sqlErr error
 		if picture != nil {
 			file, err := picture.Open()
 			checkErr(err)
 			defer file.Close()
 			profileData, err = ioutil.ReadAll(file)
 			checkErr(err)
-		}
-
-		sqlInsertString := fmt.Sprintf(`INSERT INTO User( 
-Id, username, password, first_name, last_name, email, birthday, picture, phone, date_joined, last_login, role, is_admin, active
-)
-VALUES
-(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`)
-		sqlUpdateString := fmt.Sprintf(`UPDATE User SET
-username=?, password=?, first_name=?, last_name=?, email=?, birthday=?, picture=?, phone=?, role=?, is_admin=?, active=?
-WHERE
-id = ?)
-`)
-
-		var res sql.Result
-		var sqlErr error
-		mode := "create"
-		if mode == "create" {
-			sqlCommand, err := db.Prepare(sqlInsertString)
-			checkErr(err)
-			res, sqlErr = sqlCommand.Exec(username, password, firstName, lastName, email, birthday, profileData, phone, "", "", "", true, true)
-		} else if mode == "edit" {
+			sqlUpdateString := `UPDATE User SET
+			username=?, password=?, first_name=?, last_name=?, email=?, birthday=?, phone=?, role=?, is_admin=?, picture=?
+			WHERE
+			id = ?;
+			`
 			sqlCommand, err := db.Prepare(sqlUpdateString)
 			checkErr(err)
-			res, sqlErr = sqlCommand.Exec(username, password, firstName, lastName, email, birthday, profileData, phone, "", true, true, 1) // TODO: replace 1 with correct 1 or use a different function.
+			_, sqlErr = sqlCommand.Exec(username, password, firstName, lastName, email, birthday, phone, "", isAdmin, profileData, userInfoMap["id"])
+		} else {
+			//profileData = []uint8{0}
+			sqlUpdateString := `UPDATE User SET
+			username=?, password=?, first_name=?, last_name=?, email=?, birthday=?, phone=?, role=?, is_admin=?
+			WHERE
+			id = ?;
+			`
+			sqlCommand, err := db.Prepare(sqlUpdateString)
+			checkErr(err)
+			_, sqlErr = sqlCommand.Exec(username, password, firstName, lastName, email, birthday, phone, "", isAdmin, userInfoMap["id"])
 		}
-		_ = res
-		_ = sqlErr
 
-		c.HTML(http.StatusOK, "profile.html", gin.H{"User": userInfoMap, "mode": "edit"})
+		var message string
+		var status string
+		if sqlErr == nil {
+			message = fmt.Sprintf("User \"%s\" - Id = \"%.0f\" has been updated successfully", username, userInfoMap["id"])
+			status = "0"
+		} else {
+			message = fmt.Sprintf("Issues creating user %s", username)
+			status = "1"
+		}
+
+		c.HTML(http.StatusOK, "home.html", gin.H{"User": userInfoMap, "mode": "edit", "Feedback": map[string]string{message: status}, "Url": "/"})
 	})
 }

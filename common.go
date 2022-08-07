@@ -2,41 +2,10 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"regexp"
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
-
-func checkErr(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func getCheckBoxValue(c *gin.Context, field string) bool {
-	fieldValue := c.PostForm(field)
-	var fieldValueBool bool
-	if fieldValue == "" {
-		fieldValueBool = false
-	} else {
-		fieldValueBool = true
-	}
-	return fieldValueBool
-}
-
-func dateToDbFormat(fieldDate string) string {
-	var format = "%s-%s-%s"
-	fieldDateSplit := strings.Split(fieldDate, "/")
-	var dateDbFormat string
-	if len(fieldDateSplit) == 3 {
-		dateDbFormat = fmt.Sprintf(format, fieldDateSplit[2], fieldDateSplit[1], fieldDateSplit[0])
-	}
-
-	return dateDbFormat
-}
 
 func map2(data []string, f func(string) string) []string {
 	mapped := make([]string, len(data))

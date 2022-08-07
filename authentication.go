@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -145,45 +144,4 @@ func getLogoutHandler(c *gin.Context) {
 	delete(session.Values, "user")
 	session.Save(c.Request, c.Writer)
 	c.HTML(http.StatusOK, "home.html", gin.H{"message": "Logged out"})
-}
-
-/* Get logged user info functions */
-func getCurrentUser(c *gin.Context) *User {
-	session, _ := store.Get(c.Request, "session")
-	userInfo, infoExists := session.Values["user"]
-
-	if userInfo == nil {
-		return nil
-	}
-
-	userCookie := userInfo.(*User)
-	userId := userCookie.Id
-
-	if !infoExists {
-		return nil
-	}
-
-	var LoggedUser User
-	getUserError := LoggedUser.getUserById(userId)
-
-	if getUserError == nil {
-		return &LoggedUser
-	} else {
-		return nil
-	}
-}
-
-func userInfoToMap(s *User) map[string]interface{} {
-	var myMap map[string]interface{}
-	data, _ := json.Marshal(s)
-	json.Unmarshal(data, &myMap)
-
-	return myMap
-}
-
-func getCurrentUserMap(c *gin.Context) map[string]interface{} {
-	userinfo := getCurrentUser(c)
-	userMap := userInfoToMap(userinfo)
-
-	return userMap
 }

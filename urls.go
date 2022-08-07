@@ -20,17 +20,19 @@ func routes(r *gin.Engine) {
 	unprotected.GET("/read", updatePerson)
 
 	// Home
-	unprotected.GET("/", func(c *gin.Context) { c.HTML(http.StatusOK, "home.html", nil) })
+	unprotected.GET("/", func(c *gin.Context) { c.HTML(http.StatusOK, "home.html", gin.H{"User": getCurrentUserMap(c)}) })
 
 	// Login
-	r.GET("/login", func(c *gin.Context) { c.HTML(http.StatusOK, "login.html", nil) })
+	r.GET("/login", func(c *gin.Context) { c.HTML(http.StatusOK, "login.html", gin.H{"User": getCurrentUserMap(c)}) })
 	r.POST("/login", postLoginHandler)
 
 	// Logout
 	r.GET("/logout", getLogoutHandler)
 
 	// Register
-	admin.GET("/register", func(c *gin.Context) { c.HTML(http.StatusOK, "profile.html", gin.H{"mode": "create"}) })
+	admin.GET("/register", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "profile.html", gin.H{"User": getCurrentUserMap(c), "mode": "create"})
+	})
 
 	// Profile
 	protected.GET("/profile", func(c *gin.Context) {

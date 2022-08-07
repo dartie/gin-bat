@@ -71,6 +71,11 @@ vertical-align: text-bottom;
     white-space: pre-line;
 }
 
+/* Topbar*/
+.avatar {
+    border-radius: 50%;
+}
+
 /* Set icons in dropdown */
 .dropdown-item img {
     width: 30px;

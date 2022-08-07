@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/gob"
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -24,7 +23,7 @@ func readSettings() map[string]string {
 	var settingsMap map[string]string
 	settingsFile := "settings.json"
 	if _, err := os.Stat(settingsFile); err == nil {
-		settingsBytes, err := ioutil.ReadFile(settingsFile)
+		settingsBytes, err := os.ReadFile(settingsFile)
 		if err != nil {
 			log.Fatal(err)
 		}

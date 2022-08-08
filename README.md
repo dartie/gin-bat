@@ -4,12 +4,35 @@
 
 - [ ] Registration/Request Access
 - [ ] Embed Files
-- [ ] Project management
-    - [ ] Admin Panel
+
+- [ ] Admin
+    - [ ] Create user
+    - [ ] Update user
+    - [ ] Delete user
+    - [ ] Reset user password
+    - [ ] Create auth-token
+    - [ ] Display auth-token
+
+- [ ] Command line
+    - [ ] Create user
+    - [ ] Update user
+    - [ ] Delete user
+    - [ ] Reset user password
+    - [ ] Create auth-token
+    - [ ] Display auth-token
+    - [ ] ---------------------
+    - [ ] Project management
     - [ ] command line administration
     - [ ] Bootstrap/Vanilla javascript selection
 
-- [ ] Api Setup
+- [ ] API
+    - [ ] Create user
+    - [ ] Update user
+    - [ ] Delete user
+    - [ ] Reset user password
+    - [ ] Create auth-token
+
+
 - [ ] CSRF
 
 

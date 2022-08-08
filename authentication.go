@@ -18,7 +18,7 @@ func LoginCorrect(user string, password string) int {
 	//access := loginCorrect("dartie", "pwd")
 	//_ = access
 
-	query := "SELECT id, username, password FROM User WHERE username=?;"
+	query := "SELECT id, username, password FROM User WHERE active=1 AND username=?;"
 	row := db.QueryRow(query, user)
 
 	var dbid int

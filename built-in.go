@@ -75,6 +75,13 @@ func userInfoToMap(s *User) map[string]interface{} {
 
 func getCurrentUserMap(c *gin.Context) map[string]interface{} {
 	userinfo := getCurrentUser(c)
+	if userinfo == nil {
+		// Error occurred (user disconnected?)
+		logoutUser(c)
+
+		// Options: return nil which raise a Panic Error, or redirect to another view (logout/login).
+		return nil
+	}
 	userMap := userInfoToMap(userinfo)
 
 	return userMap

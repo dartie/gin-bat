@@ -84,27 +84,7 @@ func auth(c *gin.Context) {
 	c.Next()
 }
 
-/*
-	rows := sqlQuery("SELECT id, username, password FROM User;")
-	_ = rows
-	var id int
-	var username, password string
-	for rows.Next() {
-		// Get values from row.
-		err := rows.Scan(&id, &username, &password)
-		if err != nil {
-			fmt.Print(err)
-		}
-	}
-
-	defer rows.Close()
-*/
-
-// Displays form for login
-func getLoginHandler(c *gin.Context) {
-	c.HTML(http.StatusOK, "login.html", nil)
-}
-
+// post Login handler: checks whether the user is granted and store the cookies for the session
 func postLoginHandler(c *gin.Context) {
 	var user User
 	user.Username = c.PostForm("username")
@@ -138,10 +118,14 @@ func postLoginHandler(c *gin.Context) {
 	c.HTML(http.StatusUnauthorized, "login.html", gin.H{"message": "check username and password"})
 }
 
-// Logout user by deleting session data
-func getLogoutHandler(c *gin.Context) {
+func logoutUser(c *gin.Context) {
 	session, _ := store.Get(c.Request, "session")
 	delete(session.Values, "user")
 	session.Save(c.Request, c.Writer)
-	c.HTML(http.StatusOK, "home.html", gin.H{"message": "Logged out"})
+}
+
+// Logout user by deleting session data
+func getLogoutHandler(c *gin.Context) {
+	logoutUser(c)
+	c.HTML(http.StatusOK, "home.html", gin.H{"Feedback": map[string]string{"Logged out": "2"}, "Url": "/"})
 }

@@ -6,7 +6,6 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
-	"log"
 	"reflect"
 )
 
@@ -48,7 +47,7 @@ func (u *User) getUserById(Id int) error {
 	}
 
 	if err != nil {
-		log.Panic("getUser() error selecting User, err:", err)
+		//log.Panic("getUser() error selecting User, err:", err)  // log.Panic would cause a crash and doesn't allow to handle with a proper user logout
 		return err
 	}
 	return nil

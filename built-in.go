@@ -198,5 +198,8 @@ func postUpdateUserHandler(c *gin.Context) {
 		status = "1"
 	}
 
+	// refresh date as they are changed. This is useful for updating the profile picture in the topbar if present.
+	userInfoMap = getCurrentUserMap(c)
+
 	c.HTML(http.StatusOK, "home.html", gin.H{"User": userInfoMap, "mode": "edit", "Feedback": map[string]string{message: status}, "Url": "/"})
 }

@@ -120,7 +120,7 @@ func postLoginHandler(c *gin.Context) {
 
 	if err != nil {
 		fmt.Println("error selecting pswd_hash in db by Username, err:", err)
-		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"message": "check username and password"})
+		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"Feedback": map[string]string{"check username and password": "1"}, "Url": "/"})
 		return
 	}
 	err = nil //bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))  //TODO : user Hashed PWD instead of clear PWD

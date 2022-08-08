@@ -61,8 +61,8 @@
                                 <img class="" src="/static/ico/camera.svg" style="cursor:pointer" onclick="document.getElementById('upload_profile_pic').click()" width="40%"/>
                             </div>
                         </div>
-                            <span class="font-weight-bold">{{.User.first_name}} {{.User.last_name}}</span>
-                            <span class="text-black-50">{{.User.email}}</span>
+                            <span id="ProfileLabelRow1" class="font-weight-bold"></span>
+                            <span id="ProfileLabelRow2" class="text-black-50"></span>
                     </div>
                     <input name="upload_profile_pic" id="upload_profile_pic" type="file" style="display: none"/>
                 </div>
@@ -137,58 +137,62 @@
         });
 
         /* Load defaults */
-        // Fill input info
-        document.getElementById("username").value = "{{.User.username}}";
-        document.getElementById("password").value =  "";
-        document.getElementById("first_name").value =  "{{.User.first_name}}";
-        document.getElementById("last_name").value =  "{{.User.last_name}}";
-        document.getElementById("mobile").value =  "{{.User.phone}}";
-        document.getElementById("email").value =  "{{.User.email}}";
-        
-        // Profile image Input
-        let profile_picture = "{{.User.picture}}";
-        if (profile_picture && profile_picture != "AA==") {  // AA=== is the result of byte 0 in the database, in case the field is set to NOT NULL
-            document .getElementById('profile_pic').src = 'data:image/png;base64,' + profile_picture;
-        } else {
-            document .getElementById('profile_pic').src = '/static/img/avatar.png';
-        }
-
-        // Birtday Input
-        let birthdayString = '{{ .User.birthday }}';
-        if (birthdayString) {
-            let birthday = new Date(birthdayString);
-            datepicker.setDate(birthday);
-        } else {
-            document.getElementById("birthday").value = "";
-        }
-        document.getElementById("isAdmin").checked = {{.User.is_admin}};
-
-
         // hugo notation: {{ if eq .mode "view" }} Edit profile {{ else if eq .mode "edit" }} Save profile {{ else }} Create user {{end}}
         // Submit button
-        submitButtonElement = document.getElementById("submit")
-        profileFormElement = document.getElementById("profileForm")
-        headerTextElement = document.getElementById("headerText")
+        submitButtonElement = document.getElementById("submit");
+        profileFormElement = document.getElementById("profileForm");
+        headerTextElement = document.getElementById("headerText");
         inputsElement = document.getElementsByTagName("input");
         containerOverlayElements = document.getElementsByClassName("container-overlay");
 
+        if (mode != "create") {
+            // Fill input info
+            document.getElementById("username").value = "{{.User.username}}";
+            document.getElementById("password").value = "";
+            document.getElementById("first_name").value = "{{.User.first_name}}";
+            document.getElementById("last_name").value = "{{.User.last_name}}";
+            document.getElementById("mobile").value = "{{.User.phone}}";
+            document.getElementById("email").value = "{{.User.email}}";
+            document.getElementById("ProfileLabelRow1").textContent = "{{.User.first_name}} {{.User.last_name}}";
+            document.getElementById("ProfileLabelRow2").textContent = "{{.User.email}}";
+
+            // Profile image Input
+            let profile_picture = "{{.User.picture}}";
+            if (profile_picture && profile_picture != "AA==") {  // AA=== is the result of byte 0 in the database, in case the field is set to NOT NULL
+                document .getElementById('profile_pic').src = 'data:image/png;base64,' + profile_picture;
+            } else {
+                document .getElementById('profile_pic').src = '/static/img/avatar.png';
+            }
+
+            // Birtday Input
+            let birthdayString = '{{ .User.birthday }}';
+            if (birthdayString) {
+                let birthday = new Date(birthdayString);
+                datepicker.setDate(birthday);
+            } else {
+                document.getElementById("birthday").value = "";
+            }
+            document.getElementById("isAdmin").checked = {{.User.is_admin}};
+        }
+
         if (mode === "create") {
             // mode = create 
-            submitButtonElement.textContent = "Create user"
-            headerTextElement.textContent = "Create user"
-            profileFormElement.action = "/create-profile"
+            submitButtonElement.textContent = "Create user";
+            headerTextElement.textContent = "Create user";
+            profileFormElement.action = "/create-profile";
+            document.getElementById("birthday").value = "";
 
         } else if (mode === "edit") {
-            submitButtonElement.textContent = "Save profile"
-            headerTextElement.textContent = "Edit profile"
-            profileFormElement.action = "/update-profile"
+            submitButtonElement.textContent = "Save profile";
+            headerTextElement.textContent = "Edit profile";
+            profileFormElement.action = "/update-profile";
 
         } else {
             // mode = view
-            submitButtonElement.textContent = "Edit profile"
-            headerTextElement.textContent = "Profile"
-            profileFormElement.action = "/edit-profile"
-            profileFormElement.method = "get"
+            submitButtonElement.textContent = "Edit profile";
+            headerTextElement.textContent = "Profile";
+            profileFormElement.action = "/edit-profile";
+            profileFormElement.method = "get";
             
             for (let i=0; i < inputsElement.length; i++ ) {
                 // disable text elements and set grey background
@@ -201,7 +205,7 @@
             for (let i=0; i < containerOverlayElements.length; i++ ) {
                 // disable any possibility to select image for profile picture
                 containerOverlayElements[i].style.cursor = "default";
-                containerOverlayElements[i].classList.remove("container-overlay")
+                containerOverlayElements[i].classList.remove("container-overlay");
             }
         }
     </script>

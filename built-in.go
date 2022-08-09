@@ -7,8 +7,10 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/itchyny/timefmt-go"
 )
 
 func checkErr(err error) {
@@ -87,6 +89,13 @@ func getCurrentUserMap(c *gin.Context) map[string]interface{} {
 	return userMap
 }
 
+func nowSqliteFormat() string {
+	t := time.Now()
+	str := timefmt.Format(t, "%Y-%m-%d %H:%M:%S.%f") // YYYY-MM-DD HH:MM:SS.SSS
+
+	return str
+}
+
 /* Built-in Handlers */
 
 // POST Create Profile
@@ -137,7 +146,7 @@ VALUES
 `
 	sqlCommand, err := db.Prepare(sqlInsertString)
 	checkErr(err)
-	sqlResult, sqlErr := sqlCommand.Exec(username, password, firstName, lastName, email, birthday, profileData, phone, "", "", "", isAdmin, true)
+	sqlResult, sqlErr := sqlCommand.Exec(username, password, firstName, lastName, email, birthday, profileData, phone, nowSqliteFormat(), "", "", isAdmin, true)
 
 	if sqlErr == nil {
 		recordId, err := sqlResult.LastInsertId()

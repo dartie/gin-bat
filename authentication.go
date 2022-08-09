@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -108,8 +109,19 @@ func postLoginHandler(c *gin.Context) {
 		session, _ := store.Get(c.Request, "session")
 		// session struct has field Values map[interface{}]interface{}
 		session.Values["user"] = user
+
 		// save before writing to response/return from handler
 		session.Save(c.Request, c.Writer)
+
+		// Update the database with last_login field
+		sqlInsertString := "UPDATE User SET last_login=? WHERE id=?"
+		sqlCommand, err := db.Prepare(sqlInsertString)
+		checkErr(err)
+		_, sqlErr := sqlCommand.Exec(nowSqliteFormat(), user.Id)
+		if sqlErr != nil {
+			log.Panic(sqlErr)
+		}
+
 		//c.HTML(http.StatusOK, "home.html", gin.H{"username": user.Username})
 		c.Redirect(http.StatusMovedPermanently, nextUrl)
 		return

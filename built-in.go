@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/itchyny/timefmt-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func checkErr(err error) {
@@ -114,6 +115,10 @@ func postCreateUserHandler(c *gin.Context) {
 	var message string
 	var status string
 
+	// Generate hashed password from bcrypt
+	hashedPassword, hashedPasswordErr := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	checkErr(hashedPasswordErr)
+
 	// Check if new profile already exists
 	key := username
 	query := "SELECT username from User where username = ?"
@@ -146,7 +151,7 @@ VALUES
 `
 	sqlCommand, err := db.Prepare(sqlInsertString)
 	checkErr(err)
-	sqlResult, sqlErr := sqlCommand.Exec(username, password, firstName, lastName, email, birthday, profileData, phone, nowSqliteFormat(), "", "", isAdmin, true)
+	sqlResult, sqlErr := sqlCommand.Exec(username, hashedPassword, firstName, lastName, email, birthday, profileData, phone, nowSqliteFormat(), "", "", isAdmin, true)
 
 	if sqlErr == nil {
 		recordId, err := sqlResult.LastInsertId()

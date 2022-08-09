@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var store = sessions.NewCookieStore([]byte("super-secret"))
@@ -96,7 +97,7 @@ func postLoginHandler(c *gin.Context) {
 		nextUrl = defaultRedirect
 	}
 
-	_ = password
+	// Get user information from the database
 	err := user.getUserByUsername()
 
 	if err != nil {
@@ -104,8 +105,11 @@ func postLoginHandler(c *gin.Context) {
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"Feedback": map[string]string{"check username and password": "1"}, "Url": "/"})
 		return
 	}
-	err = nil //bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))  //TODO : user Hashed PWD instead of clear PWD
-	if err == nil {
+
+	// Compare hashed password stored with the hashed password input
+	isPasswordWrong := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+
+	if isPasswordWrong == nil {
 		session, _ := store.Get(c.Request, "session")
 		// session struct has field Values map[interface{}]interface{}
 		session.Values["user"] = user

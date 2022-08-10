@@ -1,7 +1,14 @@
-body {
+/* body {
   padding-bottom: 100px;
 }
 
 .navbar {
   margin-bottom: 20px;
+} */
+
+.navbar {
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 0;
+  z-index: 99999;
 }

@@ -78,7 +78,10 @@
     
                         </div>  
                         <div id="credentials" class="row mt-3">
-                            <div class="col-md-12"><label class="labels">User</label><input id="username" name="username" type="text" class="form-control" placeholder="username" autocomplete="new-password" value=""></div>
+                            <div class="col-md-12">
+                                <label class="labels">User</label><input id="username" name="username" type="text" class="form-control" placeholder="username" autocomplete="new-password" value="">
+                                <label id="usernameExistsAlreadyMessage" class="labels text-danger">&nbsp;</label>
+                            </div>
                                 {{template "check-password" .}}
                         </div>
                         <div id="nameInfo" class="row mt-2">
@@ -212,6 +215,65 @@
             }
         }
     </script>
+<script>
+/* Validate form real time */
+var userExistsAlreadyResult = false;
+function userExistsAlready() {
+    let settings_to_send = {};
+    settings_to_send['username'] = document.getElementById("username").value.trim();
+
+    AJAX("/validate-form/", settings_to_send, 'POST', false)
+    .then(function(result) {
+        // Code depending on result
+        console.log(result);  // execute if everything is successful
+        let result_json = JSON.parse(result)
+        
+        usernameExistsAlreadyMessage = document.getElementById("usernameExistsAlreadyMessage");
+        
+        if (result_json["errors"]) {
+            if (result_json["errors"].length > 0) {
+                usernameExistsAlreadyMessage.style.display = "block";
+                usernameExistsAlreadyMessage.textContent = result_json["errors"].join("<br>");
+                returnStatus = true;
+                userExistsAlreadyResult = true;
+            } else {
+                //usernameExistsAlreadyMessage.style.display = "none";
+                usernameExistsAlreadyMessage.textContent = "\xA0";
+                userExistsAlreadyResult = false;
+                returnStatus = false;
+            }
+        } else {
+            //usernameExistsAlreadyMessage.style.display = "none";
+            usernameExistsAlreadyMessage.textContent = "\xA0";
+            userExistsAlreadyResult = false;
+            returnStatus = false;
+        }
+
+        return returnStatus;
+    })
+    .catch(function() {
+        // An error occurred
+        returnStatus = false;
+        
+        return returnStatus;
+    });
+}
+    
+// Check user 
+document.getElementById("username").onkeyup = userExistsAlready; 
+
+// OnSubmit checks
+function validateSubmit() {
+    if ((pwd.value == confirmPwd.value) && (lowerCaseLettersCheck && upperCaseLettersCheck && numbersCheck && lengthCheck && matchCheck) && !userExistsAlreadyResult) {
+        return true;
+    } else {
+        document.getElementById("message").style.display = "block";
+        return false;
+    }
+}
+
+document.getElementById("profileForm").onsubmit = validateSubmit;
+</script>    
 <script type="text/javascript" src="/static/js/check-password.js"></script>
 
 {{ template "Footer" . }}

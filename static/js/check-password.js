@@ -104,12 +104,3 @@ confirmPwd.onkeyup = function() {
         messageBox.classList.add("invalid-box");
     }
 }
-
-form.onsubmit = function() {
-    if (pwd.value == confirmPwd.value) {
-        return true;
-    } else {
-        document.getElementById("message").style.display = "block";
-        return false;
-    }
-}

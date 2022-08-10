@@ -120,8 +120,8 @@ func postCreateUserHandler(c *gin.Context) {
 	checkErr(hashedPasswordErr)
 
 	// Check if new profile already exists
-	key := username
-	query := "SELECT username from User where username = ?"
+	key := strings.ToUpper(username)
+	query := "SELECT username from User where UPPER(username) = ?"
 	row := db.QueryRow(query, key)
 	var dbid interface{}
 	err := row.Scan(&dbid)
@@ -223,4 +223,25 @@ func postUpdateUserHandler(c *gin.Context) {
 	userInfoMap = getCurrentUserMap(c)
 
 	c.HTML(http.StatusOK, "home.html", gin.H{"User": userInfoMap, "mode": "edit", "Feedback": map[string]string{message: status}, "Url": "/"})
+}
+
+/* Ajax Handlers */
+// Validate new User
+func validateNewUser(c *gin.Context) {
+	// Check if new profile already exists
+	username := c.DefaultPostForm("username", "")
+	var errors []string
+
+	key := strings.ToUpper(username)
+	query := "SELECT username from User where UPPER(username) = ?"
+	row := db.QueryRow(query, key)
+	var dbid interface{}
+	err := row.Scan(&dbid)
+	if err == nil {
+		// User already exists
+		message := fmt.Sprintf("User %s already exists", username)
+		errors = append(errors, message)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errors": errors})
 }

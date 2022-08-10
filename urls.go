@@ -55,4 +55,10 @@ func routes(r *gin.Engine) {
 		c.HTML(http.StatusOK, "admin.html", gin.H{"User": getCurrentUserMap(c)})
 	})
 
+	/* Ajax routes */
+	// Validate form
+	admin.POST("/validate-form", validateNewUser)
+
+	/* My routes : Any custom route */
+
 }

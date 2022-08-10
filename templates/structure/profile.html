@@ -99,7 +99,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-3">
+                        <div id="adminCheckbox" class="mt-3">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="isAdmin" id="isAdmin" name="isAdmin">
                                 <label class="form-check-label" for="isAdmin"> Admin </label>
@@ -178,7 +178,21 @@
             } else {
                 document.getElementById("birthday").value = "";
             }
-            document.getElementById("isAdmin").checked = {{.User.is_admin}};
+
+            // Admin checkbox only visible in create mode
+            if (document.getElementById("isAdmin")) {
+                document.getElementById("isAdmin").checked = {{.User.is_admin}};
+            }
+
+            // Hide password fields
+            document.getElementById("password_block").style.display = "none";
+            document.getElementById("password_block").innerHTML = "";
+
+            // Hide Admin checkbox
+            document.getElementById("adminCheckbox").innerHTML = "";
+
+            // Make username text input uneditable
+            document.getElementById("username").disabled = true;
         }
 
         if (mode === "create") {
@@ -258,9 +272,6 @@ function userExistsAlready() {
         return returnStatus;
     });
 }
-    
-// Check user 
-document.getElementById("username").onkeyup = userExistsAlready; 
 
 // OnSubmit checks
 function validateSubmit() {
@@ -272,7 +283,14 @@ function validateSubmit() {
     }
 }
 
-document.getElementById("profileForm").onsubmit = validateSubmit;
+// Enable data validation  
+if (document.getElementById("password_block").style.display != "none") {
+    // Check user on submit
+    document.getElementById("profileForm").onsubmit = validateSubmit;
+
+    // Check user on change
+    document.getElementById("username").onkeyup = userExistsAlready; 
+}
 </script>    
 <script type="text/javascript" src="/static/js/check-password.js"></script>
 

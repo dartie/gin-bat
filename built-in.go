@@ -170,16 +170,31 @@ VALUES
 
 // POST Update User
 func postUpdateUserHandler(c *gin.Context) {
+	updateUserFunc(c, false)
+}
+
+func updateUserFunc(c *gin.Context, admin bool) {
 	userInfoMap := getCurrentUserMap(c)
 	username := c.DefaultPostForm("username", "")
-	password := c.DefaultPostForm("password", "")
+	isAdmin := getCheckBoxValue(c, "isAdmin")
 	firstName := c.DefaultPostForm("first_name", "")
 	lastName := c.DefaultPostForm("last_name", "")
 	phone := c.DefaultPostForm("mobile", "")
 	email := c.DefaultPostForm("email", "")
 	birthday := dateToDbFormat(c.DefaultPostForm("birthday", ""))
-	isAdmin := getCheckBoxValue(c, "isAdmin")
 	picture, _ := c.FormFile("upload_profile_pic")
+
+	var sqlUpdateString string
+
+	sqlUpdateString = `UPDATE User SET
+	%s
+	WHERE
+	id = ?;
+	`
+
+	queryFields := []string{"username", "first_name", "last_name", "email", "birthday", "phone", "role"}
+	var queryParameters []interface{}
+	queryParameters = append(queryParameters, username, firstName, lastName, email, birthday, phone, "")
 
 	var profileData []byte
 	var sqlErr error
@@ -189,25 +204,27 @@ func postUpdateUserHandler(c *gin.Context) {
 		defer file.Close()
 		profileData, err = ioutil.ReadAll(file)
 		checkErr(err)
-		sqlUpdateString := `UPDATE User SET
-		username=?, password=?, first_name=?, last_name=?, email=?, birthday=?, phone=?, role=?, is_admin=?, picture=?
-		WHERE
-		id = ?;
-		`
-		sqlCommand, err := db.Prepare(sqlUpdateString)
-		checkErr(err)
-		_, sqlErr = sqlCommand.Exec(username, password, firstName, lastName, email, birthday, phone, "", isAdmin, profileData, userInfoMap["id"])
-	} else {
+		queryFields = append(queryFields, "picture")
+		queryParameters = append(queryParameters, profileData)
+	} /*else {
 		//profileData = []uint8{0}
-		sqlUpdateString := `UPDATE User SET
-		username=?, password=?, first_name=?, last_name=?, email=?, birthday=?, phone=?, role=?, is_admin=?
-		WHERE
-		id = ?;
-		`
-		sqlCommand, err := db.Prepare(sqlUpdateString)
-		checkErr(err)
-		_, sqlErr = sqlCommand.Exec(username, password, firstName, lastName, email, birthday, phone, "", isAdmin, userInfoMap["id"])
+
+	}*/
+
+	if admin {
+		queryFields = append(queryFields, "is_admin")
+		queryParameters = append(queryParameters, isAdmin)
 	}
+
+	queryFieldsString := strings.Trim(strings.Join(queryFields, "=?, "), ", ") + "=? "
+	sqlUpdateString = fmt.Sprintf(sqlUpdateString, queryFieldsString)
+	sqlCommand, err := db.Prepare(sqlUpdateString)
+	checkErr(err)
+
+	// Add id parameter
+	queryParameters = append(queryParameters, userInfoMap["id"])
+
+	_, sqlErr = sqlCommand.Exec(queryParameters...)
 
 	var message string
 	var status string

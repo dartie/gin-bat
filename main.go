@@ -47,7 +47,10 @@ func main() {
 	/* Load settings */
 	settingsMap = readSettings()
 
-	// Connect to database
+	/* Init command line */
+	initcmd()
+
+	/* Connect to database */
 	var dberr error
 	db, dberr = sql.Open(settingsMap["database_type"], settingsMap["database_connection"])
 	checkErr(dberr)
@@ -84,8 +87,13 @@ func main() {
 	/* Load all routes from urls.go file */
 	routes(r)
 
-	// By default it serves on :8080 unless a
-	// PORT environment variable was defined.
-	//r.Run(settingsMap["host"] + ":" + settingsMap["port"]) // TODO : restore this line for production
-	r.Run("localhost:" + settingsMap["port"]) // only for debug
+	/* Run the server */
+	if runserverCommand.Invoked {
+		// By default it serves on :8080 unless a
+		// PORT environment variable was defined.
+		//r.Run(settingsMap["host"] + ":" + settingsMap["port"]) // TODO : restore this line for production
+
+		r.Run(*host + ":" + *port)
+	}
+
 }

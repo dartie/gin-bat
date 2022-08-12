@@ -47,15 +47,15 @@ func main() {
 	/* Load settings */
 	settingsMap = readSettings()
 
-	/* Init command line */
-	initcmd()
-
 	/* Connect to database */
 	var dberr error
 	db, dberr = sql.Open(settingsMap["database_type"], settingsMap["database_connection"])
 	checkErr(dberr)
 	// defer close
 	defer db.Close()
+
+	/* Init command line */
+	initcmd()
 
 	/* Initialize Gin */
 	r := gin.Default()

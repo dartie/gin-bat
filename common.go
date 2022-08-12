@@ -1,11 +1,20 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"log"
+	"os"
 	"regexp"
 	"strings"
 )
+
+func readStdin() string {
+	reader := bufio.NewReader(os.Stdin)
+	inputText, _ := reader.ReadString('\n')
+
+	return strings.TrimSpace(inputText)
+}
 
 func map2(data []string, f func(string) string) []string {
 	mapped := make([]string, len(data))

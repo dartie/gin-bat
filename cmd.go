@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/araddon/dateparse"
+	"github.com/gookit/color"
 	"github.com/hellflame/argparse"
 	"github.com/howeyc/gopass"
 	"github.com/itchyny/timefmt-go"
@@ -19,8 +20,6 @@ import (
 
 var appName = "MyWebApp"
 var Version = "1.0"
-var host *string
-var port *string
 
 /* Arguments command line */
 var parser = argparse.NewParser(appName+" "+Version, ``, nil)
@@ -44,6 +43,34 @@ var createUserPicture *string
 var createUserRole *string
 var createUserAdmin *bool
 
+// Variables for update-user command
+var updateUserUser *string
+var updateUserPassword *string
+var updateUserFirstname *string
+var updateUserLastname *string
+var updateUserEmail *string
+var updateUserPhone *string
+var updateUserBirthday *string
+var updateUserPicture *string
+var updateUserRole *string
+var updateUserAdmin *bool
+
+// Variables for delete-user command
+var deleteUserUser *string
+
+// Variables for reset-password command
+var resetPasswordUser *string
+
+// Variables for create-token command
+var createUserTokenUser *string
+
+// Variables for display-token command
+var displayUserTokenUser *string
+
+// Variables for runserver command
+var host *string
+var port *string
+
 func initcmd() {
 	// Arguments for createUserCommand
 	createUserUser = createUserCommand.String("u", "user", nil)
@@ -52,43 +79,31 @@ func initcmd() {
 	createUserLastname = createUserCommand.String("s", "last-name", nil)
 	createUserEmail = createUserCommand.String("e", "email", nil)
 	createUserPhone = createUserCommand.String("t", "telephone", nil)
-	createUserBirthday = createUserCommand.String("b", "birthday", nil)
+	createUserBirthday = createUserCommand.String("b", "birthday", &argparse.Option{Help: "Format YYYY-MM-DD"})
 	createUserPicture = createUserCommand.String("pic", "picture", nil)
 	createUserRole = createUserCommand.String("r", "role", nil)
 	createUserAdmin = createUserCommand.Flag("a", "admin", nil)
 
-	_ = createUserUser
-	_ = createUserPassword
-	_ = createUserFirstname
-	_ = createUserLastname
-	_ = createUserEmail
-	_ = createUserPhone
-	_ = createUserBirthday
-	_ = createUserPicture
-	_ = createUserRole
-	_ = createUserAdmin
-
 	// Arguments for updateUserCommand
-	updateUserCommand.String("u", "user", nil)
-	updateUserCommand.String("p", "password", nil)
-	updateUserCommand.String("n", "first-name", nil)
-	updateUserCommand.String("s", "last-name", nil)
-	updateUserCommand.String("e", "email", nil)
-	updateUserCommand.String("t", "telephone", nil)
-	//updateUserCommand.String("b", "birthday", &argparse.Option{Help: "Format DD/MM/YYYY"})
-	updateUserCommand.String("b", "birthday", &argparse.Option{Help: "Format YYYY-MM-DD"})
-	updateUserCommand.String("pic", "picture", nil)
-	updateUserCommand.String("r", "role", nil)
-	updateUserCommand.Flag("a", "admin", nil)
+	updateUserUser = updateUserCommand.String("u", "user", nil)
+	updateUserPassword = updateUserCommand.String("p", "password", nil)
+	updateUserFirstname = updateUserCommand.String("n", "first-name", nil)
+	updateUserLastname = updateUserCommand.String("s", "last-name", nil)
+	updateUserEmail = updateUserCommand.String("e", "email", nil)
+	updateUserPhone = updateUserCommand.String("t", "telephone", nil)
+	updateUserBirthday = updateUserCommand.String("b", "birthday", &argparse.Option{Help: "Format YYYY-MM-DD"})
+	updateUserPicture = updateUserCommand.String("pic", "picture", nil)
+	updateUserRole = updateUserCommand.String("r", "role", nil)
+	updateUserAdmin = updateUserCommand.Flag("a", "admin", nil)
 
 	// Arguments for deleteUserCommand
-	deleteUserCommand.String("u", "user", nil)
+	deleteUserUser = deleteUserCommand.String("u", "user", nil)
 
 	// Arguments for resetPasswordCommand
-	resetPasswordCommand.String("u", "user", nil)
+	resetPasswordUser = resetPasswordCommand.String("u", "user", nil)
 
 	// Arguments for createUserTokenCommand
-	createUserTokenCommand.String("u", "user", nil)
+	createUserTokenUser = createUserTokenCommand.String("u", "user", nil)
 
 	// Arguments for displayUserTokenCommand
 	displayUserTokenCommand.String("u", "user", nil)
@@ -99,12 +114,16 @@ func initcmd() {
 
 	/* Parse */
 	if e := parser.Parse(nil); e != nil {
-		fmt.Println(e.Error())
+		color.Red.Println(e.Error())
 		return
 	}
 
 	if createUserCommand.Invoked {
 		createUser()
+	}
+
+	if deleteUserCommand.Invoked {
+		deleteUser()
 	}
 }
 
@@ -119,7 +138,7 @@ func createUser() {
 
 	// Check inputs
 	if *createUserUser == "" {
-		fmt.Print("Enter username:\n>")
+		color.Cyan.Print("Enter username:\n>")
 		*createUserUser = readStdin()
 	}
 
@@ -130,18 +149,18 @@ func createUser() {
 	var dbid interface{}
 	queryErr := row.Scan(&dbid)
 	if queryErr == nil {
-		log.Fatalf("User %s already exists. Exiting.", *createUserUser)
+		log.Fatalf(color.Red.Sprintf("User %s already exists. Exiting.", *createUserUser))
 	}
 
 	if *createUserPassword == "" {
-		fmt.Print("Enter password:\n>")
+		color.Cyan.Print("Enter password:\n>")
 		inputPassword, _ := gopass.GetPasswd()
 
-		fmt.Print("Confirm password:\n>")
+		color.Cyan.Print("Confirm password:\n>")
 		inputConfirmPassword, _ := gopass.GetPasswd()
 
 		if string(inputConfirmPassword) != string(inputPassword) {
-			log.Fatal("Passwords don't match.")
+			log.Fatal(color.Red.Sprintf("Passwords don't match."))
 		} else {
 			*createUserPassword = string(inputPassword)
 		}
@@ -151,14 +170,24 @@ func createUser() {
 	hashedPassword, hashedPasswordErr := bcrypt.GenerateFromPassword([]byte(*createUserPassword), bcrypt.DefaultCost)
 	checkErr(hashedPasswordErr)
 
+	if *createUserFirstname == "" {
+		color.Cyan.Print("Enter First Name:\n>")
+		*createUserFirstname = readStdin()
+	}
+
+	if *createUserLastname == "" {
+		color.Cyan.Print("Enter Last Name:\n>")
+		*createUserLastname = readStdin()
+	}
+
 	if *createUserEmail == "" {
-		fmt.Print("Enter email:\n>")
+		color.Cyan.Print("Enter email:\n>")
 		*createUserEmail = readStdin()
 	}
 
 	if *createUserBirthday == "" {
-		fmt.Print("Enter birthday (YYYY-MM-DD):\n>")
-		//fmt.Print("Enter birthday (DD-MM-YYYY):\n>")
+		color.Cyan.Print("Enter birthday (YYYY-MM-DD):\n>")
+		//color.Cyan.Print("Enter birthday (DD-MM-YYYY):\n>")
 		*createUserBirthday = readStdin()
 	}
 
@@ -167,19 +196,19 @@ func createUser() {
 		//re := regexp.MustCompile(`(0?[1-9]|[12][0-9]|3[01])[-/](0?[1-9]|1[012])[-/]((19|20)\d\d)`)
 		re := regexp.MustCompile(`((19|20)\d\d)[-/](0?[1-9]|1[012])[-/](0?[1-9]|[12][0-9]|3[01])`)
 		if !re.MatchString(*createUserBirthday) {
-			log.Fatalf("Invalid date format: %s", *createUserBirthday)
+			log.Fatalf(color.Red.Sprintf("Invalid date format: %s", *createUserBirthday))
 		}
 
 		dateObject, err := dateparse.ParseAny(*createUserBirthday)
 		if err != nil {
-			log.Fatalf("Invalid date: %s", *createUserBirthday)
+			log.Fatalf(color.Red.Sprintf("Invalid date: %s", *createUserBirthday))
 		}
 
 		*createUserBirthday = timefmt.Format(dateObject, "%Y-%m-%d")
 	}
 
 	if *createUserPicture == "" {
-		fmt.Print("Enter picture path:\n>")
+		color.Cyan.Print("Enter picture path:\n>")
 		*createUserPicture = readStdin()
 	}
 
@@ -189,7 +218,7 @@ func createUser() {
 		//Validate path
 		if *createUserPicture != "" {
 			if _, err := os.Stat(*createUserPicture); errors.Is(err, os.ErrNotExist) {
-				log.Fatalf("File \"%s\" doesn't exists", *createUserPicture)
+				log.Fatal(color.Red.Sprintf("File \"%s\" doesn't exists", *createUserPicture))
 			}
 		}
 		userPictureFile, fileErr := os.Open(*createUserPicture)
@@ -202,14 +231,14 @@ func createUser() {
 	}
 
 	if *createUserPhone == "" {
-		fmt.Print("Enter phone:\n>")
+		color.Cyan.Print("Enter phone:\n>")
 		*createUserPhone = readStdin()
 	}
 
 	var adminInputString = "NO"
 	if !*createUserAdmin {
 		var adminInput string
-		fmt.Print("Is the user Admin? (Y\\n):\n>")
+		color.Cyan.Print("Is the user Admin? (Y\\n):\n>")
 		adminInput = readStdin()
 
 		if strings.ToUpper(adminInput) == "Y" {
@@ -224,19 +253,21 @@ func createUser() {
 	table := termtables.CreateTable()
 	table.AddHeaders("Info", "DB Field", "Value")
 	table.AddRow("Username", "username", *createUserUser)
+	table.AddRow("First Name", "first_name", *createUserFirstname)
+	table.AddRow("Last Name", "last_name", *createUserLastname)
 	table.AddRow("Email", "email", *createUserEmail)
 	table.AddRow("Birthday", "birthday", *createUserBirthday)
 	table.AddRow("Profile Picture", "picture", *createUserPicture)
 	table.AddRow("Phone number", "phone", *createUserPhone)
 	table.AddRow("Administrator", "is_admin", adminInputString)
-	fmt.Println(table.Render())
+	color.Cyan.Println(table.Render())
 
 	var confirmSummary string
-	fmt.Println("Create the user with the above info? [Y\\n]\n>")
+	color.Yellow.Println("Create the user with the above info? [Y\\n]\n>")
 	confirmSummary = readStdin()
 
 	if strings.ToUpper(confirmSummary) != "Y" {
-		fmt.Println("User aborted")
+		color.Red.Println("User aborted")
 		os.Exit(0)
 	}
 
@@ -252,11 +283,72 @@ func createUser() {
 		}
 		message = fmt.Sprintf("User \"%s\" - Id = \"%d\" has been created successfully", *createUserUser, recordId)
 		status = recordId
+		color.Green.Println(message)
+
 	} else {
 		message = fmt.Sprintf("Issues creating user %s : %s", *createUserUser, sqlErr)
 		status = 0
-	}
-	fmt.Println(message)
-	os.Exit(int(status))
+		color.Red.Println(message)
 
+	}
+	os.Exit(int(status))
+}
+
+func deleteUser() {
+	sqlDeleteString := `DELETE FROM User WHERE username=?`
+
+	if *deleteUserUser == "" {
+		// Ask username to remove
+		color.Cyan.Printf("Type the user delete (username)\n>")
+		*deleteUserUser = readStdin()
+	}
+
+	// Check if the user exists
+	query := "SELECT Id, username, first_name, last_name, email, birthday, phone, date_joined, last_login, role, is_admin, active FROM User WHERE username=?;"
+	row := db.QueryRow(query, *deleteUserUser)
+
+	var dbid int
+	var dbusername, dbfirstname, dblastname, dbemail, dbbirthday, dbphone, dbdatejoined, dblastlogin, dbrole, dbisadmin, dbactive string
+	selectErr := row.Scan(&dbid, &dbusername, &dbfirstname, &dblastname, &dbemail, &dbbirthday, &dbphone, &dbdatejoined, &dblastlogin, &dbrole, &dbisadmin, &dbactive)
+
+	if selectErr == nil {
+		// Print Summary
+		table := termtables.CreateTable()
+		table.AddHeaders("Info", "DB Field", "Value")
+		table.AddRow("Username", "username", dbusername)
+		table.AddRow("First Name", "first_name", dbfirstname)
+		table.AddRow("Last Name", "last_name", dblastname)
+		table.AddRow("Email", "email", dbemail)
+		table.AddRow("Birthday", "birthday", dbemail)
+		table.AddRow("Phone number", "phone", dbphone)
+		table.AddRow("Date joined", "date_joined", dbdatejoined)
+		table.AddRow("Last login", "last_login", dblastlogin)
+		table.AddRow("Role", "role", dbrole)
+		table.AddRow("Administrator", "is_admin", dbisadmin)
+		color.Cyan.Println(table.Render())
+	} else {
+		log.Fatalf(color.Red.Sprintf("User %s does not exist.", *deleteUserUser))
+	}
+
+	// Ask confirm
+	var confirm string
+	color.Yellow.Printf("Are you sure you want to delete \"%s\" user? [Y\\n]\n>", *deleteUserUser)
+	confirm = readStdin()
+
+	if strings.ToUpper(confirm) == "Y" {
+		sqlCommand, err := db.Prepare(sqlDeleteString)
+		checkErr(err)
+		sqlResult, sqlErr := sqlCommand.Exec(*deleteUserUser)
+		checkErr(sqlErr)
+		recordId, err := sqlResult.LastInsertId()
+		if err != nil {
+			recordId = 0
+		}
+		_ = recordId
+		color.Green.Printf("User \"%s\" removed\n", *deleteUserUser)
+		os.Exit(0)
+	} else {
+		color.Red.Println("User aborted")
+		os.Exit(0)
+	}
 }

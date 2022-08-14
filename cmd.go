@@ -26,7 +26,7 @@ var parser = argparse.NewParser(appName+" "+Version, ``, nil)
 var createUserCommand = parser.AddCommand("create-user", "Create a new user", nil)
 var updateUserCommand = parser.AddCommand("update-user", "Update an existing user", nil)
 var deleteUserCommand = parser.AddCommand("delete-user", "Delete an existing user", nil)
-var resetPasswordCommand = parser.AddCommand("reset-password", "Reset password for an existing user", nil)
+var changePasswordCommand = parser.AddCommand("change-password", "Change password for an existing user", nil)
 var createUserTokenCommand = parser.AddCommand("create-token", "Create a new user", nil)
 var displayUserTokenCommand = parser.AddCommand("display-token", "Display token for a given user", nil)
 var runserverCommand = parser.AddCommand("runserver", "Run the server", &argparse.ParserConfig{DisableDefaultShowHelp: true})
@@ -59,7 +59,7 @@ var updateUserAdmin *bool
 var deleteUserUser *string
 
 // Variables for reset-password command
-var resetPasswordUser *string
+var changePasswordUser *string
 
 // Variables for create-token command
 var createUserTokenUser *string
@@ -99,8 +99,8 @@ func initcmd() {
 	// Arguments for deleteUserCommand
 	deleteUserUser = deleteUserCommand.String("u", "user", nil)
 
-	// Arguments for resetPasswordCommand
-	resetPasswordUser = resetPasswordCommand.String("u", "user", nil)
+	// Arguments for changePasswordCommand
+	changePasswordUser = changePasswordCommand.String("u", "user", nil)
 
 	// Arguments for createUserTokenCommand
 	createUserTokenUser = createUserTokenCommand.String("u", "user", nil)
@@ -124,6 +124,10 @@ func initcmd() {
 
 	if deleteUserCommand.Invoked {
 		deleteUser()
+	}
+
+	if changePasswordCommand.Invoked {
+		changePassword()
 	}
 }
 
@@ -350,5 +354,67 @@ func deleteUser() {
 	} else {
 		color.Red.Println("User aborted")
 		os.Exit(0)
+	}
+}
+
+func changePassword() {
+	if *changePasswordUser == "" {
+		// Ask username to remove
+		color.Cyan.Printf("Type the user to change the password (username)\n>")
+		*changePasswordUser = readStdin()
+	}
+
+	// Check if the user exists
+	query := "SELECT Id, username, first_name, last_name, email, birthday, phone, date_joined, last_login, role, is_admin, active FROM User WHERE username=?;"
+	row := db.QueryRow(query, *changePasswordUser)
+
+	var dbid int
+	var dbusername, dbfirstname, dblastname, dbemail, dbbirthday, dbphone, dbdatejoined, dblastlogin, dbrole, dbisadmin, dbactive string
+	selectErr := row.Scan(&dbid, &dbusername, &dbfirstname, &dblastname, &dbemail, &dbbirthday, &dbphone, &dbdatejoined, &dblastlogin, &dbrole, &dbisadmin, &dbactive)
+
+	if selectErr == nil {
+		// Print Summary
+		table := termtables.CreateTable()
+		table.AddHeaders("Info", "DB Field", "Value")
+		table.AddRow("Username", "username", dbusername)
+		table.AddRow("First Name", "first_name", dbfirstname)
+		table.AddRow("Last Name", "last_name", dblastname)
+		table.AddRow("Email", "email", dbemail)
+		table.AddRow("Birthday", "birthday", dbbirthday)
+		table.AddRow("Phone number", "phone", dbphone)
+		table.AddRow("Date joined", "date_joined", dbdatejoined)
+		table.AddRow("Last login", "last_login", dblastlogin)
+		table.AddRow("Role", "role", dbrole)
+		table.AddRow("Administrator", "is_admin", dbisadmin)
+		color.Cyan.Println(table.Render())
+	} else {
+		log.Fatalf(color.Red.Sprintf("User %s does not exist.", *changePasswordUser))
+	}
+
+	color.Cyan.Print("Enter password:\n>")
+	inputPassword, _ := gopass.GetPasswd()
+
+	color.Cyan.Print("Confirm password:\n>")
+	inputConfirmPassword, _ := gopass.GetPasswd()
+
+	if string(inputConfirmPassword) != string(inputPassword) {
+		log.Fatal(color.Red.Sprintf("Passwords don't match."))
+	}
+
+	// Generate hashed password from bcrypt
+	hashedPassword, hashedPasswordErr := bcrypt.GenerateFromPassword([]byte(inputPassword), bcrypt.DefaultCost)
+	checkErr(hashedPasswordErr)
+
+	// Update User with new password
+	updatePasswordSql := `UPDATE User SET password=? WHERE id=?`
+
+	sqlCommand, err := db.Prepare(updatePasswordSql)
+	checkErr(err)
+	_, sqlErr := sqlCommand.Exec(hashedPassword, dbid)
+	if sqlErr == nil {
+		color.Green.Println("\nPassword updated")
+		os.Exit(0)
+	} else {
+		log.Fatal(color.Red.Sprintf("Errors during password update: %s", sqlErr))
 	}
 }

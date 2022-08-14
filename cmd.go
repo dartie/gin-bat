@@ -319,7 +319,7 @@ func deleteUser() {
 		table.AddRow("First Name", "first_name", dbfirstname)
 		table.AddRow("Last Name", "last_name", dblastname)
 		table.AddRow("Email", "email", dbemail)
-		table.AddRow("Birthday", "birthday", dbemail)
+		table.AddRow("Birthday", "birthday", dbbirthday)
 		table.AddRow("Phone number", "phone", dbphone)
 		table.AddRow("Date joined", "date_joined", dbdatejoined)
 		table.AddRow("Last login", "last_login", dblastlogin)

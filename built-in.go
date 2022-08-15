@@ -10,13 +10,15 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gookit/color"
 	"github.com/itchyny/timefmt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func checkErr(err error) {
 	if err != nil {
-		log.Panic(err)
+		//log.Panic(err)
+		log.Panic(color.Red.Sprintf("%s", err))
 	}
 }
 

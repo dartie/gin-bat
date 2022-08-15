@@ -34,5 +34,5 @@ CREATE TABLE "AuthToken" (
 	"created"	datetime NOT NULL,
 	"user_id"	integer NOT NULL UNIQUE,
 	PRIMARY KEY("key"),
-	FOREIGN KEY("user_id") REFERENCES "auth_user"("id") DEFERRABLE INITIALLY DEFERRED
+	FOREIGN KEY("user_id") REFERENCES "User"("id") DEFERRABLE INITIALLY DEFERRED
 );

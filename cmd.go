@@ -476,7 +476,9 @@ func createUserToken() {
 	checkErr(sqlErr)
 
 	// Display the token
-	fmt.Println(tokenString)
+	fmt.Println() // Blank line
+	color.Green.Println(tokenString)
+	fmt.Println() // Blank line
 
 	os.Exit(0)
 }

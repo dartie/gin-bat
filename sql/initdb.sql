@@ -19,22 +19,20 @@ CREATE TABLE "User" (
 	"active" INTEGER NOT NULL
 );
 
-/* Create "User" Table */
-/*
-CREATE TABLE User (
-    Id INTEGER PRIMARY KEY,
-    Username TEXT,
-	Password TEXT,
-	FirstName TEXT,
-	LastName TEXT,
-	Email TEXT,
-	Birthday TEXT,
-	Picture BLOB,
-	Phone TEXT,
-	DateJoined TEXT,
-	LastLogin TEXT,
-	Role TEXT,
-	IsAdmin INTEGER NOT NULL,
-	Active INTEGER NOT NULL
+/* Drop "AuthToken" Table */ 
+DROP TABLE IF EXISTS "AuthToken";
+
+/* Create "AuthToken" Table */ 
+CREATE TABLE AuthToken (
+    key TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL UNIQUE,
+	created TEXT NOT NULL
 );
-*/
+
+CREATE TABLE "AuthToken" (
+	"key"	varchar(40) NOT NULL,
+	"created"	datetime NOT NULL,
+	"user_id"	integer NOT NULL UNIQUE,
+	PRIMARY KEY("key"),
+	FOREIGN KEY("user_id") REFERENCES "auth_user"("id") DEFERRABLE INITIALLY DEFERRED
+);

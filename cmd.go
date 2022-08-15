@@ -129,6 +129,10 @@ func initcmd() {
 	if changePasswordCommand.Invoked {
 		changePassword()
 	}
+
+	if createUserTokenCommand.Invoked {
+		createUserToken()
+	}
 }
 
 func createUser() {
@@ -388,7 +392,7 @@ func changePassword() {
 		table.AddRow("Administrator", "is_admin", dbisadmin)
 		color.Cyan.Println(table.Render())
 	} else {
-		log.Fatalf(color.Red.Sprintf("User %s does not exist.", *changePasswordUser))
+		log.Fatalf(color.Red.Sprintf("User \"%s\" does not exist.", *changePasswordUser))
 	}
 
 	color.Cyan.Print("Enter password:\n>")
@@ -417,4 +421,62 @@ func changePassword() {
 	} else {
 		log.Fatal(color.Red.Sprintf("Errors during password update: %s", sqlErr))
 	}
+}
+
+func createUserToken() {
+	var u User
+	if *createUserTokenUser == "" {
+		// Ask username to remove
+		color.Cyan.Printf("Type the user to change the password (username)\n>")
+		*createUserTokenUser = readStdin()
+	}
+
+	// Check if the user exists
+	query := "SELECT Id, username, first_name, last_name, email, birthday, phone, date_joined, last_login, role, is_admin, active FROM User WHERE username=?;"
+	row := db.QueryRow(query, *createUserTokenUser)
+	selectErr := row.Scan(&u.Id, &u.Username, &u.FirstName, &u.LastName, &u.Email, &u.Birthday, &u.Phone, &u.DateJoined, &u.LastLogin, &u.Role, &u.IsAdmin, &u.Active)
+
+	if selectErr != nil {
+		log.Fatalf(color.Red.Sprintf("User \"%s\" does not exist.", *createUserTokenUser))
+	}
+
+	// Create user if your conditions match. Below, all username and passwords are accepted.
+	user := &User{
+		Id:       u.Id,
+		Username: u.Username,
+		Password: u.Password,
+	}
+
+	tokenString, _ := CreateToken(fmt.Sprintf("%d", u.Id), user)
+
+	/* Store the token in the DB */
+	// Check whether it's and INSERT or UPDATE
+	var dbId int
+	var sqlInsertString string
+
+	query = "SELECT user_id FROM AuthToken WHERE user_id=?"
+	row = db.QueryRow(query, u.Id)
+	selectErr = row.Scan(&dbId)
+	if selectErr == nil {
+		sqlInsertString = `UPDATE AuthToken SET key=?, created=? WHERE user_id=?`
+	} else {
+		// A record is already present -> UPDATE
+		sqlInsertString = `INSERT INTO AuthToken ( 
+			key, created, user_id
+			)
+			VALUES
+			(?, ?, ?)
+			`
+	}
+
+	// Execute Query
+	sqlCommand, err := db.Prepare(sqlInsertString)
+	checkErr(err)
+	_, sqlErr := sqlCommand.Exec(tokenString, nowSqliteFormat(), u.Id)
+	checkErr(sqlErr)
+
+	// Display the token
+	fmt.Println(tokenString)
+
+	os.Exit(0)
 }

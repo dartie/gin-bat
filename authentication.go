@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
 )
 
-var store = sessions.NewCookieStore([]byte("super-secret"))
+var secret = []byte("super-secret")
+var store = sessions.NewCookieStore(secret)
 
 func LoginCorrect(user string, password string) int {
 	// 0: Access granted
@@ -144,4 +147,36 @@ func logoutUser(c *gin.Context) {
 func getLogoutHandler(c *gin.Context) {
 	logoutUser(c)
 	c.HTML(http.StatusOK, "home.html", gin.H{"Feedback": map[string]string{"Logged out": "2"}, "Url": "/"})
+}
+
+// Function for creating a auth user token
+type MyJWTClaims struct {
+	*jwt.RegisteredClaims
+	UserInfo interface{}
+}
+
+// Function for creating a auth user token
+func CreateToken(sub string, userInfo interface{}) (string, error) {
+	// Get the token instance with the Signing method
+	token := jwt.New(jwt.GetSigningMethod("HS256"))
+	// Choose an expiration time. Shorter the better
+	exp := time.Now().Add(time.Hour * 24)
+	// Add your claims
+	token.Claims = &MyJWTClaims{
+		&jwt.RegisteredClaims{
+			// Set the exp and sub claims. sub is usually the userID
+			ExpiresAt: jwt.NewNumericDate(exp),
+			Subject:   sub,
+		},
+		userInfo,
+	}
+	// Sign the token with your secret key
+	val, err := token.SignedString(secret)
+
+	if err != nil {
+		// On error return the error
+		return "", err
+	}
+	// On success return the token string
+	return val, nil
 }

@@ -16,7 +16,6 @@ import (
 /* Global variables */
 var settingsMap map[string]string
 var db *sql.DB
-var r *gin.Engine
 
 func readSettings() map[string]string {
 	/* Read settings */

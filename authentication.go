@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -87,6 +88,63 @@ func auth(c *gin.Context) {
 		return
 	}
 	c.Next()
+}
+
+// auth middleware checks if token is correct and the user allowed
+func authToken(c *gin.Context) {
+	// Get Token from request
+	tokenRequest := c.Request.Header["Authorization"]
+
+	var token string
+	if len(tokenRequest) > 0 {
+		token = strings.TrimPrefix(tokenRequest[0], "Token ")
+	}
+
+	/* auth_header := c.Header.Get("Authorization")
+	if !strings.HasPrefix(auth_header, "Bearer") {
+		c.JSON(http.StatusForbidden, gin.H{"message": "User not authorized!"})
+		c.Abort()
+		return
+	}
+
+	tokenString := strings.TrimPrefix(auth_header, "Bearer ")
+	*/
+	var requestorId float64
+	claims, claimsErr := GetClaimsFromToken(token)
+	if claimsErr != nil {
+		c.JSON(http.StatusNetworkAuthenticationRequired, gin.H{"error": "Invalid token!"})
+		fmt.Println()
+		c.Abort()
+		return
+		//log.Panic(color.Red.Sprintf("Invalid token: %s", token))
+	} else {
+		requestorId = claims["UserInfo"].(map[string]interface{})["id"].(float64)
+
+		// Check the token in the DB
+		query := "SELECT key, user_id FROM AuthToken WHERE key=?;"
+		row := db.QueryRow(query, token)
+
+		var dbkey string
+		var dbuserid float64
+		queryErr := row.Scan(&dbkey, &dbuserid)
+		if queryErr == nil {
+			// User in the db
+			if dbuserid != requestorId {
+				c.JSON(http.StatusNetworkAuthenticationRequired, gin.H{"error": "Token user and DB User don't match!"})
+				fmt.Println()
+				c.Abort()
+				return
+				//log.Panic(color.Red.Sprintf("Token user and DB User don't match!"))
+			}
+		} else {
+			// User missing from db
+			c.JSON(http.StatusNetworkAuthenticationRequired, gin.H{"error": "Unauthorized Token!"})
+			fmt.Println()
+			c.Abort()
+			return
+			//log.Panic(color.Red.Sprintf("Unauthorized Token: %s", token))
+		}
+	}
 }
 
 // post Login handler: checks whether the user is granted and store the cookies for the session
@@ -179,4 +237,20 @@ func CreateToken(sub string, userInfo interface{}) (string, error) {
 	}
 	// On success return the token string
 	return val, nil
+}
+
+func GetClaimsFromToken(tokenString string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return secret, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, err
 }

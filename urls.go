@@ -10,9 +10,12 @@ func routes(r *gin.Engine) {
 	admin := r.Group("/").Use(isAdmin)
 	protected := r.Group("/").Use(auth)
 	unprotected := r.Group("/")
+	apiProtected := r.Group("/api/").Use(authToken)
+
 	_ = admin
 	_ = protected
 	_ = unprotected
+	_ = apiProtected
 
 	protected.GET("/protected", addPerson)
 	unprotected.GET("/read", updatePerson)
@@ -53,6 +56,11 @@ func routes(r *gin.Engine) {
 	// Admin
 	admin.GET("/admin", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "admin.html", gin.H{"User": getCurrentUserMap(c)})
+	})
+
+	// API
+	apiProtected.GET("/test", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "Hello!"})
 	})
 
 	/* Ajax routes */

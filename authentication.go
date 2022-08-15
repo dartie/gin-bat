@@ -100,23 +100,12 @@ func authToken(c *gin.Context) {
 		token = strings.TrimPrefix(tokenRequest[0], "Token ")
 	}
 
-	/* auth_header := c.Header.Get("Authorization")
-	if !strings.HasPrefix(auth_header, "Bearer") {
-		c.JSON(http.StatusForbidden, gin.H{"message": "User not authorized!"})
-		c.Abort()
-		return
-	}
-
-	tokenString := strings.TrimPrefix(auth_header, "Bearer ")
-	*/
 	var requestorId float64
 	claims, claimsErr := GetClaimsFromToken(token)
 	if claimsErr != nil {
 		c.JSON(http.StatusNetworkAuthenticationRequired, gin.H{"error": "Invalid token!"})
-		fmt.Println()
 		c.Abort()
 		return
-		//log.Panic(color.Red.Sprintf("Invalid token: %s", token))
 	} else {
 		requestorId = claims["UserInfo"].(map[string]interface{})["id"].(float64)
 
@@ -131,18 +120,14 @@ func authToken(c *gin.Context) {
 			// User in the db
 			if dbuserid != requestorId {
 				c.JSON(http.StatusNetworkAuthenticationRequired, gin.H{"error": "Token user and DB User don't match!"})
-				fmt.Println()
 				c.Abort()
 				return
-				//log.Panic(color.Red.Sprintf("Token user and DB User don't match!"))
 			}
 		} else {
 			// User missing from db
 			c.JSON(http.StatusNetworkAuthenticationRequired, gin.H{"error": "Unauthorized Token!"})
-			fmt.Println()
 			c.Abort()
 			return
-			//log.Panic(color.Red.Sprintf("Unauthorized Token: %s", token))
 		}
 	}
 }

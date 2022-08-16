@@ -167,7 +167,7 @@ func createUser() {
 	var dbid interface{}
 	queryErr := row.Scan(&dbid)
 	if queryErr == nil {
-		log.Fatalf(color.Red.Sprintf("User %s already exists. Exiting.", *createUserUser))
+		log.Fatalf(color.Red.Sprintf("User \"%s\" already exists. Exiting.", *createUserUser))
 	}
 
 	if *createUserPassword == "" {
@@ -186,7 +186,7 @@ func createUser() {
 
 	// Generate hashed password from bcrypt
 	hashedPassword, hashedPasswordErr := bcrypt.GenerateFromPassword([]byte(*createUserPassword), bcrypt.DefaultCost)
-	checkErr(hashedPasswordErr)
+	checkErrCmd(hashedPasswordErr, fmt.Sprintf("%s", hashedPasswordErr), 1)
 
 	if *createUserFirstname == "" {
 		color.Cyan.Print("Enter First Name:\n>")
@@ -231,7 +231,7 @@ func createUser() {
 	}
 
 	var profileData interface{} //[]byte
-	var readPicerr error
+	var readPicErr error
 	if *createUserPicture != "" {
 		//Validate path
 		if *createUserPicture != "" {
@@ -240,10 +240,10 @@ func createUser() {
 			}
 		}
 		userPictureFile, fileErr := os.Open(*createUserPicture)
-		checkErr(fileErr)
+		checkErrCmd(fileErr, fmt.Sprintf("%s", fileErr), 1)
 		defer userPictureFile.Close()
-		profileData, readPicerr = io.ReadAll(userPictureFile)
-		checkErr(readPicerr)
+		profileData, readPicErr = io.ReadAll(userPictureFile)
+		checkErrCmd(readPicErr, fmt.Sprintf("%s", readPicErr), 1)
 	} else {
 		profileData = nil
 	}
@@ -290,7 +290,7 @@ func createUser() {
 	}
 
 	sqlCommand, err := db.Prepare(sqlInsertString)
-	checkErr(err)
+	checkErrCmd(err, fmt.Sprintf("%s", err), 1)
 	sqlResult, sqlErr := sqlCommand.Exec(*createUserUser, hashedPassword, *createUserFirstname, *createUserLastname, *createUserEmail, *createUserBirthday, profileData, *createUserPhone, nowSqliteFormat(), "", "", *createUserAdmin, true)
 	var status int64
 	var message string
@@ -304,7 +304,7 @@ func createUser() {
 		color.Green.Println(message)
 
 	} else {
-		message = fmt.Sprintf("Issues creating user %s : %s", *createUserUser, sqlErr)
+		message = fmt.Sprintf("Issues creating User \"%s\" : %s", *createUserUser, sqlErr)
 		status = 0
 		color.Red.Println(message)
 
@@ -345,7 +345,7 @@ func deleteUser() {
 		table.AddRow("Administrator", "is_admin", dbisadmin)
 		color.Cyan.Println(table.Render())
 	} else {
-		log.Fatalf(color.Red.Sprintf("User %s does not exist.", *deleteUserUser))
+		log.Fatalf(color.Red.Sprintf("User \"%s\" does not exist.", *deleteUserUser))
 	}
 
 	// Ask confirm
@@ -355,9 +355,9 @@ func deleteUser() {
 
 	if strings.ToUpper(confirm) == "Y" {
 		sqlCommand, err := db.Prepare(sqlDeleteString)
-		checkErr(err)
+		checkErrCmd(err, fmt.Sprintf("%s", err), 1)
 		sqlResult, sqlErr := sqlCommand.Exec(*deleteUserUser)
-		checkErr(sqlErr)
+		checkErrCmd(sqlErr, fmt.Sprintf("%s", sqlErr), 1)
 		recordId, err := sqlResult.LastInsertId()
 		if err != nil {
 			recordId = 0
@@ -417,13 +417,13 @@ func changePassword() {
 
 	// Generate hashed password from bcrypt
 	hashedPassword, hashedPasswordErr := bcrypt.GenerateFromPassword([]byte(inputPassword), bcrypt.DefaultCost)
-	checkErr(hashedPasswordErr)
+	checkErrCmd(hashedPasswordErr, fmt.Sprintf("%s", hashedPasswordErr), 1)
 
 	// Update User with new password
 	updatePasswordSql := `UPDATE User SET password=? WHERE id=?`
 
 	sqlCommand, err := db.Prepare(updatePasswordSql)
-	checkErr(err)
+	checkErrCmd(err, fmt.Sprintf("%s", err), 1)
 	_, sqlErr := sqlCommand.Exec(hashedPassword, dbid)
 	if sqlErr == nil {
 		color.Green.Println("\nPassword updated")
@@ -522,9 +522,9 @@ func createUserToken() {
 
 	// Execute Query
 	sqlCommand, err := db.Prepare(sqlInsertString)
-	checkErr(err)
+	checkErrCmd(err, fmt.Sprintf("%s", err), 1)
 	_, sqlErr := sqlCommand.Exec(tokenString, nowSqliteFormat(), expirationDBFormat, u.Id)
-	checkErr(sqlErr)
+	checkErrCmd(sqlErr, fmt.Sprintf("%s", sqlErr), 1)
 
 	// Display the token
 	fmt.Println() // Blank line

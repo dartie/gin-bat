@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/gookit/color"
 	"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -97,13 +98,15 @@ func authToken(c *gin.Context) {
 
 	var token string
 	if len(tokenRequest) > 0 {
-		token = strings.TrimPrefix(tokenRequest[0], "Token ")
+		token = strings.TrimPrefix(tokenRequest[0], "Bearer ")
 	}
 
 	var requestorId float64
 	claims, claimsErr := GetClaimsFromToken(token)
 	if claimsErr != nil {
-		c.JSON(http.StatusNetworkAuthenticationRequired, gin.H{"error": "Invalid token!"})
+		errorMessage := fmt.Sprintf("Invalid token: %s\n\n%s\n", token, claimsErr)
+		color.Red.Println(errorMessage)
+		c.JSON(http.StatusUnauthorized, gin.H{"error": errorMessage})
 		c.Abort()
 		return
 	} else {

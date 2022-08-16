@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/araddon/dateparse"
 	"github.com/gookit/color"
@@ -15,6 +16,7 @@ import (
 	"github.com/howeyc/gopass"
 	"github.com/itchyny/timefmt-go"
 	"github.com/scylladb/termtables"
+	str2duration "github.com/xhit/go-str2duration/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -63,6 +65,8 @@ var changePasswordUser *string
 
 // Variables for create-token command
 var createUserTokenUser *string
+var createUserTokenExpiration *string
+var createUserTokenStrictExpiration *bool
 
 // Variables for display-token command
 var displayUserTokenUser *string
@@ -104,6 +108,8 @@ func initcmd() {
 
 	// Arguments for createUserTokenCommand
 	createUserTokenUser = createUserTokenCommand.String("u", "user", nil)
+	createUserTokenExpiration = createUserTokenCommand.String("e", "expiration", &argparse.Option{Default: "24h"})
+	createUserTokenStrictExpiration = createUserTokenCommand.Flag("s", "strict-expiration", &argparse.Option{Help: "If enabled, the token expires at the exact time specified by the user and not at the midnight."})
 
 	// Arguments for displayUserTokenCommand
 	displayUserTokenCommand.String("u", "user", nil)
@@ -431,6 +437,12 @@ func createUserToken() {
 		*createUserTokenUser = readStdin()
 	}
 
+	if *createUserTokenExpiration == "" {
+		// Ask username to remove
+		color.Cyan.Printf("Type the token duration (date DD-MM-YYYY, duration - 24h, 8h - permanent, )\n>")
+		*createUserTokenExpiration = readStdin()
+	}
+
 	// Check if the user exists
 	query := "SELECT Id, username, first_name, last_name, email, birthday, phone, date_joined, last_login, role, is_admin, active FROM User WHERE username=?;"
 	row := db.QueryRow(query, *createUserTokenUser)
@@ -447,7 +459,38 @@ func createUserToken() {
 		Password: u.Password,
 	}
 
-	tokenString, _ := CreateToken(fmt.Sprintf("%d", u.Id), user)
+	// create time object for duration
+	var expiration time.Time
+	if strings.Contains(*createUserTokenExpiration, "-") || strings.Contains(*createUserTokenExpiration, "/") {
+		// date
+		var dateParseErr error
+		*createUserTokenExpiration = strings.ReplaceAll(*createUserTokenExpiration, "-", "/")
+		*createUserTokenExpiration = *createUserTokenExpiration + " 23:59:59"
+		expiration, dateParseErr = timefmt.Parse(*createUserTokenExpiration, "%d/%m/%Y %H:%M:%S")
+		checkErrCmd(dateParseErr, fmt.Sprintf("%s", dateParseErr), 1)
+
+	} else if strings.ToLower(*createUserTokenExpiration) == "permanent" {
+		// permanent
+		expiration = time.Now().AddDate(99, 0, 0) // 99 Years
+
+	} else {
+		// duration
+		d, durationErr := str2duration.ParseDuration(*createUserTokenExpiration) // Supported formats by me: 1m, 1h, 1d
+		checkErrCmd(durationErr, fmt.Sprintf("Invalid duration: %s", *createUserTokenExpiration), 1)
+
+		expiration = time.Now().Add(time.Minute * time.Duration(d.Minutes()))
+
+		// If hours is not specified by the user, the token will last until midnight of the expiration day.
+		var parseErr error
+		if !strings.Contains(strings.ToLower(*createUserTokenExpiration), "h") && !*createUserTokenStrictExpiration {
+			expirationString := timefmt.Format(expiration, "%d/%m/%Y 23:59:59")
+			expiration, parseErr = timefmt.Parse(expirationString, "%d/%m/%Y %H:%M:%S")
+		}
+
+		checkErrCmd(parseErr, fmt.Sprintf("%s", parseErr), 1)
+	}
+
+	tokenString, _ := CreateToken(fmt.Sprintf("%d", u.Id), user, expiration)
 
 	/* Store the token in the DB */
 	// Check whether it's and INSERT or UPDATE
@@ -478,6 +521,14 @@ func createUserToken() {
 	// Display the token
 	fmt.Println() // Blank line
 	color.Green.Println(tokenString)
+	fmt.Println() // Blank line
+
+	if strings.ToLower(*createUserTokenExpiration) == "permanent" {
+		color.Yellow.Println("The above token is permanent (does not expire unless manually revoked).")
+	} else {
+		color.White.Print("expires in date: ")
+		color.Yellow.Println(timefmt.Format(expiration, "%d/%m/%Y (%A %d %B %Y) %H:%M:%S %p"))
+	}
 	fmt.Println() // Blank line
 
 	os.Exit(0)

@@ -202,16 +202,15 @@ type MyJWTClaims struct {
 }
 
 // Function for creating a auth user token
-func CreateToken(sub string, userInfo interface{}) (string, error) {
+func CreateToken(sub string, userInfo interface{}, expiration time.Time) (string, error) {
 	// Get the token instance with the Signing method
 	token := jwt.New(jwt.GetSigningMethod("HS256"))
-	// Choose an expiration time. Shorter the better
-	exp := time.Now().Add(time.Hour * 24)
+
 	// Add your claims
 	token.Claims = &MyJWTClaims{
 		&jwt.RegisteredClaims{
 			// Set the exp and sub claims. sub is usually the userID
-			ExpiresAt: jwt.NewNumericDate(exp),
+			ExpiresAt: jwt.NewNumericDate(expiration),
 			Subject:   sub,
 		},
 		userInfo,

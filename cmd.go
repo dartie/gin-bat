@@ -490,6 +490,10 @@ func createUserToken() {
 		checkErrCmd(parseErr, fmt.Sprintf("%s", parseErr), 1)
 	}
 
+	// Expiration format for DB: YYYY-MM-DD HH:MM:SS.SSS
+	expirationDBFormat := timefmt.Format(expiration, "%Y-%m-%d %H:%M:%S.%f")
+
+	// Create token
 	tokenString, _ := CreateToken(fmt.Sprintf("%d", u.Id), user, expiration)
 
 	/* Store the token in the DB */
@@ -501,21 +505,21 @@ func createUserToken() {
 	row = db.QueryRow(query, u.Id)
 	selectErr = row.Scan(&dbId)
 	if selectErr == nil {
-		sqlInsertString = `UPDATE AuthToken SET key=?, created=? WHERE user_id=?`
+		sqlInsertString = `UPDATE AuthToken SET key=?, created=?, expiration=? WHERE user_id=?`
 	} else {
 		// A record is already present -> UPDATE
 		sqlInsertString = `INSERT INTO AuthToken ( 
-			key, created, user_id
+			key, created, expiration, user_id
 			)
 			VALUES
-			(?, ?, ?)
+			(?, ?, ?, ?)
 			`
 	}
 
 	// Execute Query
 	sqlCommand, err := db.Prepare(sqlInsertString)
 	checkErr(err)
-	_, sqlErr := sqlCommand.Exec(tokenString, nowSqliteFormat(), u.Id)
+	_, sqlErr := sqlCommand.Exec(tokenString, nowSqliteFormat(), expirationDBFormat, u.Id)
 	checkErr(sqlErr)
 
 	// Display the token

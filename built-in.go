@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -19,6 +20,14 @@ func checkErr(err error) {
 	if err != nil {
 		//log.Panic(err)
 		log.Panic(color.Red.Sprintf("%s", err))
+	}
+}
+
+func checkErrCmd(err error, msg string, errCode int) {
+	if err != nil {
+		//log.Panic(err)
+		log.Fatalf(color.Red.Sprint(msg))
+		os.Exit(errCode)
 	}
 }
 

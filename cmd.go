@@ -112,7 +112,7 @@ func initcmd() {
 	createUserTokenStrictExpiration = createUserTokenCommand.Flag("s", "strict-expiration", &argparse.Option{Help: "If enabled, the token expires at the exact time specified by the user and not at the midnight."})
 
 	// Arguments for displayUserTokenCommand
-	displayUserTokenCommand.String("u", "user", nil)
+	displayUserTokenUser = displayUserTokenCommand.String("u", "user", nil)
 
 	// Arguments for runserverCommand
 	host = runserverCommand.String("H", "host", &argparse.Option{Default: settingsMap["host"]})
@@ -138,6 +138,10 @@ func initcmd() {
 
 	if createUserTokenCommand.Invoked {
 		createUserToken()
+	}
+
+	if displayUserTokenCommand.Invoked {
+		displayUserToken()
 	}
 }
 
@@ -528,6 +532,47 @@ func createUserToken() {
 	fmt.Println() // Blank line
 
 	if strings.ToLower(*createUserTokenExpiration) == "permanent" {
+		color.Yellow.Println("The above token is permanent (does not expire unless manually revoked).")
+	} else {
+		color.White.Print("expires in date: ")
+		color.Yellow.Println(timefmt.Format(expiration, "%d/%m/%Y (%A %d %B %Y) %H:%M:%S %p"))
+	}
+	fmt.Println() // Blank line
+
+	os.Exit(0)
+}
+
+func displayUserToken() {
+	if *displayUserTokenUser == "" {
+		// Ask username to remove
+		color.Cyan.Printf("Type the user you want to display the token\n>")
+		*displayUserTokenUser = readStdin()
+	}
+
+	query := `SELECT key, expiration
+		FROM AuthToken
+		INNER JOIN User
+		ON AuthToken.user_id = User.Id
+		WHERE User.username=?;
+		`
+
+	var dbKey string
+	var dbKeyExpiration string
+	row := db.QueryRow(query, *displayUserTokenUser)
+	selectErr := row.Scan(&dbKey, &dbKeyExpiration)
+	if selectErr != nil {
+		log.Fatalf(color.Red.Sprintf("User \"%s\" doesn't have tokens", *displayUserTokenUser))
+		os.Exit(1)
+	}
+
+	// Display the token
+	fmt.Println() // Blank line
+	color.Green.Println(dbKey)
+	fmt.Println() // Blank line
+
+	expiration, dateParseErr := timefmt.Parse(dbKeyExpiration, "%Y-%m-%d %H:%M:%S.%f")
+	checkErrCmd(dateParseErr, fmt.Sprintf("%s", dateParseErr), 1)
+	if expiration.Year() > 2120 {
 		color.Yellow.Println("The above token is permanent (does not expire unless manually revoked).")
 	} else {
 		color.White.Print("expires in date: ")

@@ -9,6 +9,13 @@ import (
 	"strings"
 )
 
+func readStdinOriginal() string {
+	reader := bufio.NewReader(os.Stdin)
+	inputText, _ := reader.ReadString('\n')
+
+	return inputText
+}
+
 func readStdin() string {
 	reader := bufio.NewReader(os.Stdin)
 	inputText, _ := reader.ReadString('\n')

@@ -26,7 +26,7 @@ var Version = "1.0"
 /* Arguments command line */
 var parser = argparse.NewParser(appName+" "+Version, ``, nil)
 var createUserCommand = parser.AddCommand("create-user", "Create a new user", nil)
-var updateUserCommand = parser.AddCommand("update-user", "Update an existing user", nil)
+var updateUserCommand = parser.AddCommand("update-user", "Update an existing user (Passwords can be changed with change-password command)", nil)
 var deleteUserCommand = parser.AddCommand("delete-user", "Delete an existing user", nil)
 var changePasswordCommand = parser.AddCommand("change-password", "Change password for an existing user", nil)
 var createUserTokenCommand = parser.AddCommand("create-token", "Create a new user", nil)
@@ -47,7 +47,6 @@ var createUserAdmin *bool
 
 // Variables for update-user command
 var updateUserUser *string
-var updateUserPassword *string
 var updateUserFirstname *string
 var updateUserLastname *string
 var updateUserEmail *string
@@ -56,6 +55,7 @@ var updateUserBirthday *string
 var updateUserPicture *string
 var updateUserRole *string
 var updateUserAdmin *bool
+var updateUserActive *bool
 
 // Variables for delete-user command
 var deleteUserUser *string
@@ -90,7 +90,6 @@ func initcmd() {
 
 	// Arguments for updateUserCommand
 	updateUserUser = updateUserCommand.String("u", "user", nil)
-	updateUserPassword = updateUserCommand.String("p", "password", nil)
 	updateUserFirstname = updateUserCommand.String("n", "first-name", nil)
 	updateUserLastname = updateUserCommand.String("s", "last-name", nil)
 	updateUserEmail = updateUserCommand.String("e", "email", nil)
@@ -98,7 +97,8 @@ func initcmd() {
 	updateUserBirthday = updateUserCommand.String("b", "birthday", &argparse.Option{Help: "Format YYYY-MM-DD"})
 	updateUserPicture = updateUserCommand.String("pic", "picture", nil)
 	updateUserRole = updateUserCommand.String("r", "role", nil)
-	updateUserAdmin = updateUserCommand.Flag("a", "admin", nil)
+	updateUserAdmin = updateUserCommand.Flag("A", "admin", nil)
+	updateUserActive = updateUserCommand.Flag("a", "active", nil)
 
 	// Arguments for deleteUserCommand
 	deleteUserUser = deleteUserCommand.String("u", "user", nil)
@@ -128,6 +128,10 @@ func initcmd() {
 		createUser()
 	}
 
+	if updateUserCommand.Invoked {
+		updateUser()
+	}
+
 	if deleteUserCommand.Invoked {
 		deleteUser()
 	}
@@ -152,7 +156,6 @@ func createUser() {
 		VALUES
 		(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`
-	_ = sqlInsertString
 
 	// Check inputs
 	if *createUserUser == "" {
@@ -162,7 +165,7 @@ func createUser() {
 
 	// Check if new profile already exists
 	key := strings.ToUpper(*createUserUser)
-	query := "SELECT username from User where UPPER(username) = ?"
+	query := "SELECT username FROM User where UPPER(username) = ?"
 	row := db.QueryRow(query, key)
 	var dbid interface{}
 	queryErr := row.Scan(&dbid)
@@ -312,13 +315,311 @@ func createUser() {
 	os.Exit(int(status))
 }
 
+func updateUser() {
+	// Check inputs
+	if *updateUserUser == "" {
+		color.Cyan.Print("Enter username:\n>")
+		*updateUserUser = readStdin()
+	}
+
+	// Check if the profile exists
+	key := strings.ToUpper(*updateUserUser)
+	query := "SELECT Id, username, first_name, last_name, email, birthday, phone, picture, date_joined, last_login, role, is_admin, active FROM User where UPPER(username) = ?"
+	row := db.QueryRow(query, key)
+	var dbid int
+	var dbisadmin, dbactive bool
+	var dbusername, dbfirstname, dblastname, dbemail, dbbirthday, dbphone, dbdatejoined, dblastlogin, dbrole string
+	var dbpicture interface{}
+	queryErr := row.Scan(&dbid, &dbusername, &dbfirstname, &dblastname, &dbemail, &dbbirthday, &dbphone, &dbpicture, &dbdatejoined, &dblastlogin, &dbrole, &dbisadmin, &dbactive)
+
+	if queryErr != nil {
+		log.Fatalf(color.Red.Sprintf("User \"%s\" Doesn't exist. Exiting.", *updateUserUser))
+	}
+
+	color.Yellow.Println("Type the new value or press Enter for confirming the stored value.")
+	color.Yellow.Println("Enter a space for providing a null value.")
+	fmt.Println()
+
+	if *updateUserFirstname == "" {
+		color.Cyan.Print("Enter new First Name:\n")
+		color.Yellow.Printf("Current value: \"%s\"", dbfirstname)
+		color.Cyan.Print("\n>")
+		InputUpdateUserFirstname := strings.ReplaceAll(readStdinOriginal(), "\n", "")
+
+		if InputUpdateUserFirstname == "" {
+			// leave the previous value
+			*updateUserFirstname = dbfirstname
+		} else if strings.HasPrefix(InputUpdateUserFirstname, " ") && strings.TrimSpace(InputUpdateUserFirstname) == "" {
+			// overwrite previous value with null
+			*updateUserFirstname = ""
+		} else {
+			*updateUserFirstname = InputUpdateUserFirstname
+		}
+	}
+
+	if *updateUserLastname == "" {
+		color.Cyan.Print("Enter new Last Name:\n")
+		color.Yellow.Printf("Current value: \"%s\"", dblastname)
+		color.Cyan.Print("\n>")
+		InputUpdateUserLastname := strings.ReplaceAll(readStdinOriginal(), "\n", "")
+
+		if InputUpdateUserLastname == "" {
+			// leave the previous value
+			*updateUserLastname = dblastname
+		} else if strings.HasPrefix(InputUpdateUserLastname, " ") && strings.TrimSpace(InputUpdateUserLastname) == "" {
+			// overwrite previous value with null
+			*updateUserLastname = ""
+		} else {
+			*updateUserLastname = InputUpdateUserLastname
+		}
+	}
+
+	if *updateUserEmail == "" {
+		color.Cyan.Print("Enter new email:\n")
+		color.Yellow.Printf("Current value: \"%s\"", dbemail)
+		color.Cyan.Print("\n>")
+		InputUpdateUserEmail := strings.ReplaceAll(readStdinOriginal(), "\n", "")
+
+		if InputUpdateUserEmail == "" {
+			// leave the previous value
+			*updateUserEmail = dbemail
+		} else if strings.HasPrefix(InputUpdateUserEmail, " ") && strings.TrimSpace(InputUpdateUserEmail) == "" {
+			// overwrite previous value with null
+			*updateUserEmail = ""
+		} else {
+			*updateUserEmail = InputUpdateUserEmail
+		}
+	}
+
+	if *updateUserBirthday == "" {
+		color.Cyan.Print("Enter new birthday (YYYY-MM-DD):\n")
+		color.Yellow.Printf("Current value: \"%s\"", dbbirthday)
+		color.Cyan.Print("\n>")
+		InputUpdateUserBirthday := strings.ReplaceAll(readStdinOriginal(), "\n", "")
+
+		if InputUpdateUserBirthday == "" {
+			// leave the previous value
+			*updateUserBirthday = dbbirthday
+		} else if strings.HasPrefix(InputUpdateUserBirthday, " ") && strings.TrimSpace(InputUpdateUserBirthday) == "" {
+			// overwrite previous value with null
+			*updateUserBirthday = ""
+		} else {
+			*updateUserBirthday = InputUpdateUserBirthday
+		}
+	}
+
+	if *updateUserBirthday != "" {
+		// Validate date input
+		//re := regexp.MustCompile(`(0?[1-9]|[12][0-9]|3[01])[-/](0?[1-9]|1[012])[-/]((19|20)\d\d)`)
+		re := regexp.MustCompile(`((19|20)\d\d)[-/](0?[1-9]|1[012])[-/](0?[1-9]|[12][0-9]|3[01])`)
+		if !re.MatchString(*updateUserBirthday) {
+			log.Fatalf(color.Red.Sprintf("Invalid date format: %s", *updateUserBirthday))
+		}
+
+		dateObject, err := dateparse.ParseAny(*updateUserBirthday)
+		if err != nil {
+			log.Fatalf(color.Red.Sprintf("Invalid date: %s", *updateUserBirthday))
+		}
+
+		*updateUserBirthday = timefmt.Format(dateObject, "%Y-%m-%d")
+	}
+
+	var profileData interface{} //[]byte
+	var updateUserPictureChange string
+	if *updateUserPicture == "" {
+		var dbpicturePreview string
+		if dbpicture == "" || dbpicture == nil {
+			dbpicturePreview = "<no image>"
+		} else {
+			dbpicturePreview = "Image stored"
+		}
+		color.Cyan.Printf("Enter new picture path:\n")
+		color.Yellow.Printf("Current value: \"%s...\"", dbpicturePreview)
+		color.Cyan.Print("\n>")
+		InputUpdateUserPicture := strings.ReplaceAll(readStdinOriginal(), "\n", "")
+
+		if InputUpdateUserPicture == "" {
+			// leave the previous value
+			profileData = dbpicture
+		} else if strings.HasPrefix(InputUpdateUserPicture, " ") && strings.TrimSpace(InputUpdateUserPicture) == "" {
+			// overwrite previous value with null
+			profileData = nil
+		} else {
+			updateUserPictureChange = "New picture uploaded"
+			*updateUserPicture = InputUpdateUserPicture
+
+			//Validate path
+			if _, err := os.Stat(*updateUserPicture); errors.Is(err, os.ErrNotExist) {
+				log.Fatal(color.Red.Sprintf("File \"%s\" doesn't exists", *updateUserPicture))
+			}
+			userPictureFile, fileErr := os.Open(*updateUserPicture)
+			checkErrCmd(fileErr, fmt.Sprintf("%s", fileErr), 1)
+			defer userPictureFile.Close()
+			var readPicErr error
+			profileData, readPicErr = io.ReadAll(userPictureFile)
+			checkErrCmd(readPicErr, fmt.Sprintf("%s", readPicErr), 1)
+		}
+	}
+
+	if *updateUserPhone == "" {
+		color.Cyan.Print("Enter phone:\n>")
+		color.Yellow.Printf("Current value: \"%s\"", dbphone)
+		color.Cyan.Print("\n>")
+		InputUpdateUserPhone := strings.ReplaceAll(readStdinOriginal(), "\n", "")
+
+		if InputUpdateUserPhone == "" {
+			// leave the previous value
+			*updateUserPhone = dbphone
+		} else if strings.HasPrefix(InputUpdateUserPhone, " ") && strings.TrimSpace(InputUpdateUserPhone) == "" {
+			// overwrite previous value with null
+			*updateUserPhone = ""
+		} else {
+			*updateUserPhone = InputUpdateUserPhone
+		}
+	}
+
+	if !*updateUserAdmin {
+		color.Cyan.Print("Is the user Admin? (Y\\n):\n>")
+		color.Yellow.Printf("Current value: \"%v\"", dbisadmin)
+		color.Cyan.Print("\n>")
+		InputUpdateUserAdmin := readStdin()
+
+		if InputUpdateUserAdmin == "" {
+			// leave the previous value
+			*updateUserAdmin = dbisadmin
+		} else if strings.ToUpper(InputUpdateUserAdmin) == "Y" || strings.ToUpper(InputUpdateUserAdmin) == "YES" {
+			// overwrite previous value with null
+			*updateUserAdmin = true
+		} else {
+			*updateUserAdmin = false
+		}
+	}
+
+	if !*updateUserActive {
+		color.Cyan.Print("Is the user Active? (Y\\n):\n>")
+		color.Yellow.Printf("Current value: \"%v\"", dbactive)
+		color.Cyan.Print("\n>")
+		InputUpdateUserActive := readStdin()
+
+		if InputUpdateUserActive == "" {
+			// leave the previous value
+			*updateUserActive = dbactive
+		} else if strings.ToUpper(InputUpdateUserActive) == "Y" || strings.ToUpper(InputUpdateUserActive) == "YES" {
+			// overwrite previous value with null
+			*updateUserActive = true
+		} else {
+			*updateUserActive = false
+		}
+	}
+
+	// Ask for username change
+	color.Cyan.Print("Enter new Username:\n")
+	color.Yellow.Printf("Current value: \"%s\"", dbusername)
+	color.Cyan.Print("\n>")
+	InputUpdateUserUser := strings.ReplaceAll(readStdinOriginal(), "\n", "")
+
+	if InputUpdateUserUser == "" {
+		// leave the previous value
+		*updateUserUser = dbusername
+	} else if strings.HasPrefix(InputUpdateUserUser, " ") && strings.TrimSpace(InputUpdateUserUser) == "" {
+		// overwrite previous value with null
+		*updateUserUser = ""
+	} else {
+		*updateUserUser = InputUpdateUserUser
+	}
+
+	/* Print Summary */
+	// Get the changes
+	var userWarning string
+	var updateUserUsernameChange string
+	if *updateUserUser != dbusername {
+		updateUserUsernameChange = fmt.Sprintf("%s -> %s", dbusername, *updateUserUser)
+		userWarning = fmt.Sprintf("Please note, user %s is no longer available and you will need to use %s for referring to this user", *updateUserUser, dbusername)
+	}
+	var updateUserFirstnameChange string
+	if *updateUserFirstname != dbfirstname {
+		updateUserFirstnameChange = fmt.Sprintf("%s -> %s", dbfirstname, *updateUserFirstname)
+	}
+	var updateUserLastnameChange string
+	if *updateUserFirstname != dbfirstname {
+		updateUserLastnameChange = fmt.Sprintf("%s -> %s", dblastname, *updateUserLastname)
+	}
+	var updateUserEmailChange string
+	if *updateUserEmail != dbemail {
+		updateUserEmailChange = fmt.Sprintf("%s -> %s", dbemail, *updateUserEmail)
+	}
+	var updateUserBirthdayChange string
+	if *updateUserBirthday != dbbirthday {
+		updateUserBirthdayChange = fmt.Sprintf("%s -> %s", dbbirthday, *updateUserBirthday)
+	}
+	var updateUserPhoneChange string
+	if *updateUserPhone != dbphone {
+		updateUserPhoneChange = fmt.Sprintf("%s -> %s", dbphone, *updateUserPhone)
+	}
+	var updateUserAdminChange string
+	if *updateUserAdmin != dbisadmin {
+		updateUserAdminChange = fmt.Sprintf("%v -> %v", dbisadmin, *updateUserAdmin)
+	}
+	var updateUserActiveChange string
+	if *updateUserActive != dbisadmin {
+		updateUserActiveChange = fmt.Sprintf("%v -> %v", dbactive, *updateUserActive)
+	}
+
+	table := termtables.CreateTable()
+	table.AddHeaders("Info", "DB Field", "Value", "Changes")
+	table.AddRow("Username", "username", *updateUserUser, updateUserUsernameChange)
+	table.AddRow("First Name", "first_name", *updateUserFirstname, updateUserFirstnameChange)
+	table.AddRow("Last Name", "last_name", *updateUserLastname, updateUserLastnameChange)
+	table.AddRow("Email", "email", *updateUserEmail, updateUserEmailChange)
+	table.AddRow("Birthday", "birthday", *updateUserBirthday, updateUserBirthdayChange)
+	table.AddRow("Profile Picture", "picture", *updateUserPicture, updateUserPictureChange)
+	table.AddRow("Phone number", "phone", *updateUserPhone, updateUserPhoneChange)
+	table.AddRow("Administrator", "is_admin", *updateUserAdmin, updateUserAdminChange)
+	table.AddRow("Active", "active", *updateUserActive, updateUserActiveChange)
+	color.Cyan.Println(table.Render())
+
+	var confirmSummary string
+	color.Yellow.Println("Update the user with the above info? [Y\\n]\n>")
+	confirmSummary = readStdin()
+
+	if strings.ToUpper(confirmSummary) != "Y" {
+		color.Red.Println("User aborted")
+		os.Exit(0)
+	}
+
+	// DB Update
+	sqlUpdateString := `UPDATE User 
+	SET username=?, first_name=?, last_name=?, email=?, birthday=?, picture=?, phone=?, role=?, is_admin=?, active=?
+	WHERE id=?
+	`
+	sqlCommand, err := db.Prepare(sqlUpdateString)
+	checkErrCmd(err, fmt.Sprintf("%s", err), 1)
+	_, sqlErr := sqlCommand.Exec(*updateUserUser, *updateUserFirstname, *updateUserLastname, *updateUserEmail, *updateUserBirthday, profileData, *updateUserPhone, "", *updateUserAdmin, *updateUserActive, dbid)
+	var status int
+	var message string
+	if sqlErr == nil {
+		message = fmt.Sprintf("User \"%s\" - Id = \"%d\" has been update successfully", *updateUserUser, dbid)
+		status = dbid
+		color.Green.Println(message)
+
+	} else {
+		message = fmt.Sprintf("Issues updating User \"%s\" : %s", *createUserUser, sqlErr)
+		status = 0
+		color.Red.Println(message)
+	}
+
+	color.Magenta.Println(userWarning)
+
+	os.Exit(int(status))
+}
+
 func deleteUser() {
 	sqlDeleteString := `DELETE FROM User WHERE username=?`
 
 	if *deleteUserUser == "" {
 		// Ask username to remove
 		color.Cyan.Printf("Type the user delete (username)\n>")
-		*deleteUserUser = readStdin()
+		*deleteUserUser = readStdinOriginal()
 	}
 
 	// Check if the user exists

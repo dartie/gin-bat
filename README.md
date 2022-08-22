@@ -9,29 +9,23 @@
     - [ ] Create user
     - [ ] Update user
     - [ ] Delete user
-    - [ ] Reset user password
+    - [ ] Change user password
     - [ ] Create auth-token
     - [ ] Display auth-token
 
 - [ ] Command line
-    - [ ] Create user
-    - [ ] Update user
-    - [ ] Delete user
-    - [ ] Reset user password
-    - [ ] Create auth-token
-    - [ ] Display auth-token
+    - [X] Create user
+    - [X] Update user
+    - [X] Delete user
+    - [X] Reset user password
+    - [X] Create auth-token
+    - [X] Display auth-token
     - [ ] ---------------------
     - [ ] Project management
     - [ ] command line administration
     - [ ] Bootstrap/Vanilla javascript selection
 
-- [ ] API
-    - [ ] Create user
-    - [ ] Update user
-    - [ ] Delete user
-    - [ ] Reset user password
-    - [ ] Create auth-token
-
+- [X] API
 
 - [ ] CSRF
 

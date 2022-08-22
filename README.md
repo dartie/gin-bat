@@ -6,7 +6,7 @@
 </p>
 -->
 
-# Gin-bat- [Gin-bat]
+# Gin-bat
 
 Gin-bat adds the missing batteries to [Gin Web Framework](https://github.com/gin-gonic/gin).
 [Gin Web Framework](https://github.com/gin-gonic/gin) is the fastest go web framework available, however it doesn't provide the most required features out-of-box. It's maily inspired by Django.
@@ -18,7 +18,7 @@ Gin-bat adds the missing batteries to [Gin Web Framework](https://github.com/gin
 * Project command line management
 * Admin user interface
 
-(#gin-bat)
+- [Gin-bat](#gin-bat)
   - [Command line](#command-line)
   - [Project structure](#project-structure)
   - [Getting started](#getting-started)

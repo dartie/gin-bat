@@ -6,13 +6,12 @@
     "configurations": [
         
         {
-            "name": "Debug",
+            "name": "Launch Package",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}",
-            //"args": ["runserver"],
-            "args": ["update-user", "-u", "User446"],
+            "args": [],
             "console": "integratedTerminal",
             "asRoot": true
         }

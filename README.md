@@ -18,7 +18,9 @@ Gin-bat adds the missing batteries to [Gin Web Framework](https://github.com/gin
 * Project command line management
 * Admin user interface
 
+# Table of Content
 - [Gin-bat](#gin-bat)
+- [Table of Content](#table-of-content)
   - [Command line](#command-line)
   - [Project structure](#project-structure)
   - [Getting started](#getting-started)

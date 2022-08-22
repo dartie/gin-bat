@@ -444,9 +444,6 @@ func updateUser() {
 		} else if strings.HasPrefix(InputUpdateUserPicture, " ") && strings.TrimSpace(InputUpdateUserPicture) == "" {
 			// overwrite previous value with null
 			profileData = nil
-			if dbpicture != nil {
-				updateUserPictureChange = "Picture removed"
-			}
 		} else {
 			updateUserPictureChange = "New picture uploaded"
 			*updateUserPicture = InputUpdateUserPicture

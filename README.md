@@ -1,48 +1,48 @@
-# gowebf
+<img align="right" width="159px" src="https://raw.githubusercontent.com/dartie/gin-bat/master/logo.svg" width="360">
 
-# TODO
+<!--
+<p align="center">
+    <a href="https://go.dev/"><img src="https://pkg.go.dev/badge/github.com/dartie/gin-bat" alt="PkgGoDev"></a>
+</p>
+-->
 
-- [ ] Registration/Request Access
-- [ ] Embed Files
+# Gin-bat
 
-- [ ] Admin
-    - [ ] Create user
-    - [ ] Update user
-    - [ ] Delete user
-    - [ ] Change user password
-    - [ ] Create auth-token
-    - [ ] Display auth-token
+Gin-bat adds the missing batteries to [Gin Web Framework](https://github.com/gin-gonic/gin).
+[Gin Web Framework](https://github.com/gin-gonic/gin) is the fastest go web framework available, however it doesn't provide the most required features out-of-box. It's maily inspired by Django.
 
-- [ ] Command line
-    - [X] Create user
-    - [X] Update user
-    - [X] Delete user
-    - [X] Reset user password
-    - [X] Create auth-token
-    - [X] Display auth-token
-    - [ ] ---------------------
-    - [ ] Project management
-    - [ ] command line administration
-    - [ ] Bootstrap/Vanilla javascript selection
+* MVC structure
+* Database connection
+* Basic routes
+* Authentication system
+* Project command line management
+* Admin user interface
 
-- [X] API
+## Command line
+Provides the following sub-commands:
 
-- [ ] CSRF
+* `create-user` : create a new user profile
+* `update-user` : modify an existing profile
+* `delete-user` : delete a user
+* `change-password` : change password access for a user
+* `create-token` : create a token for an existing user, to enable api usage
+* `display-token` : display the token for a given user
+* `runserver` : run the server
+
+## Project structure
+Once the project has been created, the following files are available for working on your web-application:
+
+* `urls.go` : defines the route
+* `controller.go` : defines the back-end source code (handlers)
+* `models.go` : defines database tables golang objects (`User` struct with its methods are provided by default)
+* `common.go` : includes function which are shared in the project. You add more there.
+
+The remaining go files are supposed to be untouched, unless there are behaviours you wish to change to the core:
+* `main.go`
+* `cmd.go`
+* `built-in.go`
+* `authentication.go`
 
 
-# Notes
-
-## DB
-NULL values are not handled, therefore the database has to be created using `NOT NULL` for all fields, to make sure no exceptions are raised in case of queries.
-
-
-# Troubleshooting
-
-## could not import github.com/mattn/go-sqlite3 (no required module provides package "github.com/mattn/go-sqlite3")
-1. Download `mattn/go-sqlite` version `1.14.14`
-    ```bash
-    go get github.com/mattn/go-sqlite3@v1.14.14
-    ```
-
-    as mentioned in this thread : [issue-755](https://github.com/mattn/go-sqlite3/issues/755)
-
+## Getting started
+...

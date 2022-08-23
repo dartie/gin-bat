@@ -86,7 +86,7 @@ The remaining go files are supposed to be untouched, unless there are behaviours
 Modify  `templates/structure/topbar.html`
 
 ### Title
-Modify  `templates/structure/header.html`
+Modify  `templates/structure/middle.html`
 
 ### Imports
 For convenience, all imports are located in `templates/structure/imports.html` - edit it for adding more.

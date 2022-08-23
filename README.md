@@ -121,9 +121,9 @@ func myHandler(c *gin.Context) {
 ```
 
 Accepted status are:
-* `"0"` : success :arrow_right: Green
-* `"1"` : warning :arrow_right: Orange
-* `"1"` : danger :arrow_right: Red
+* `"0"` : success :arrow_right: Green :green_circle:
+* `"1"` : warning :arrow_right: Orange :orange_circle:
+* `"1"` : danger :arrow_right: Red :red_circle:
 
 > Hint: multiple (unique) messages can be provided in the map.
 

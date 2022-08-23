@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"embed"
 	"encoding/gob"
 	"encoding/json"
 	"log"
@@ -17,9 +18,12 @@ import (
 var settingsMap map[string]string
 var db *sql.DB
 
+//go:embed all:static all:templates *.go db.sqlite3 settings.json go.mod go.sum
+var fsProjectFiles embed.FS
+
 func readSettings() map[string]string {
 	/* Read settings */
-	var settingsMap map[string]string
+	settingsMap = make(map[string]string)
 	settingsFile := "settings.json"
 	if _, err := os.Stat(settingsFile); err == nil {
 		settingsBytes, err := os.ReadFile(settingsFile)

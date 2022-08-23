@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -16,6 +19,7 @@ import (
 	"github.com/howeyc/gopass"
 	"github.com/itchyny/timefmt-go"
 	"github.com/scylladb/termtables"
+	"github.com/soypat/rebed"
 	str2duration "github.com/xhit/go-str2duration/v2"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -25,6 +29,7 @@ var Version = "1.0"
 
 /* Arguments command line */
 var parser = argparse.NewParser(appName+" "+Version, ``, nil)
+var createProjectCommand = parser.AddCommand("create-project", "Create a new project", nil)
 var createUserCommand = parser.AddCommand("create-user", "Create a new user", nil)
 var updateUserCommand = parser.AddCommand("update-user", "Update an existing user (Passwords can be changed with change-password command)", nil)
 var deleteUserCommand = parser.AddCommand("delete-user", "Delete an existing user", nil)
@@ -32,6 +37,9 @@ var changePasswordCommand = parser.AddCommand("change-password", "Change passwor
 var createUserTokenCommand = parser.AddCommand("create-token", "Create a new user", nil)
 var displayUserTokenCommand = parser.AddCommand("display-token", "Display token for a given user", nil)
 var runserverCommand = parser.AddCommand("runserver", "Run the server", &argparse.ParserConfig{DisableDefaultShowHelp: true})
+
+// Variables for create-project command
+var createProjectPath *string
 
 // Variables for create-user command
 var createUserUser *string
@@ -76,6 +84,9 @@ var host *string
 var port *string
 
 func initcmd() {
+	// Arguments for createUserCommand
+	createProjectPath = createProjectCommand.String("p", "project-name", &argparse.Option{Positional: true})
+
 	// Arguments for createUserCommand
 	createUserUser = createUserCommand.String("u", "user", nil)
 	createUserPassword = createUserCommand.String("p", "password", nil)
@@ -124,6 +135,10 @@ func initcmd() {
 		return
 	}
 
+	if createProjectCommand.Invoked {
+		createProject()
+	}
+
 	if createUserCommand.Invoked {
 		createUser()
 	}
@@ -147,6 +162,38 @@ func initcmd() {
 	if displayUserTokenCommand.Invoked {
 		displayUserToken()
 	}
+}
+
+func createProject() {
+	projectDir := filepath.Dir(*createProjectPath)
+	projectName := filepath.Base(*createProjectPath)
+	if _, err := os.Stat(*createProjectPath); errors.Is(err, os.ErrNotExist) {
+		errMkdir := os.MkdirAll(*createProjectPath, os.ModePerm)
+		checkErrCmd(errMkdir, fmt.Sprintf("%s", errMkdir), 1)
+	}
+
+	errRebed := rebed.Write(fsProjectFiles, *createProjectPath)
+	checkErrCmd(errRebed, fmt.Sprintf("%s", errRebed), 1)
+
+	/* Set name for go project */
+	gomodFilePath := filepath.Join(*createProjectPath, "go.mod")
+	input, errReadFile := ioutil.ReadFile(gomodFilePath)
+	checkErrCmd(errReadFile, fmt.Sprintf("%s", errReadFile), 1)
+
+	output := bytes.Replace(input, []byte("module ginbat"), []byte("module "+projectName), -1)
+
+	errWriteFile := ioutil.WriteFile(gomodFilePath, output, 0666)
+	checkErrCmd(errWriteFile, fmt.Sprintf("%s", errWriteFile), 1)
+
+	if projectDir == "." {
+		projectDir, _ = os.Getwd()
+	}
+
+	fmt.Println()
+	color.Green.Printf("Project \"%s\" created succefully in \"%s\"\n", projectName, projectDir)
+	fmt.Println()
+
+	os.Exit(0)
 }
 
 func createUser() {

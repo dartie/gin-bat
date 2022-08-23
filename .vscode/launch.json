@@ -12,8 +12,13 @@
             "mode": "auto",
             "program": "${workspaceFolder}",
             "args": [],
-            "console": "integratedTerminal",
-            "asRoot": true
+            //"args": ["change-password", "-u", "dartie"],
+            //"args": ["runserver"],
+            
+            /* Enable STDIN in debug */
+            //"console": "integratedTerminal",
+            //"asRoot": true
+
         }
     ]
 }

@@ -1,6 +1,16 @@
 # TODO
 
 - [ ] Registration/Request Access
+    ```go
+    // create random code for reset password
+    var alphaNumRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+    emailVerRandRune := make([]rune, 64)
+
+    // create a random slice of runes (characters) to create our emailVerPassword (random string of characters)
+    for i := 0; i < 64; i++ {
+        emailVerRundRune[i] = alphaNumRunes[rand.Intn(alphaNumRunes)-1]
+    }
+    ```
 - [ ] Embed Files
 
 - [ ] Admin

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -106,6 +107,20 @@ func nowSqliteFormat() string {
 	str := timefmt.Format(t, "%Y-%m-%d %H:%M:%S.%f") // YYYY-MM-DD HH:MM:SS.SSS
 
 	return str
+}
+
+/* Built-in Additional functions for template */
+// return the last element of a slice
+func last(x int, a interface{}) bool {
+	return x == reflect.ValueOf(a).Len()-1
+}
+
+// make the path from a list of directories + the input element
+func makePath(list []string, element string) string {
+	newPathList := append(list, []string{element}...)
+	newPathString := strings.Join(newPathList, "/")
+
+	return newPathString
 }
 
 /* Built-in Handlers */

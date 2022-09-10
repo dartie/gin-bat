@@ -23,6 +23,18 @@ func readStdin() string {
 	return strings.TrimSpace(inputText)
 }
 
+// removeEmptyStrings - Use this to remove empty string values inside an array.
+// This happens when allocation is bigger and empty
+func removeEmptyStrings(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
+}
+
 func map2(data []string, f func(string) string) []string {
 	mapped := make([]string, len(data))
 

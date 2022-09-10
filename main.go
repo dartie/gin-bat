@@ -5,6 +5,7 @@ import (
 	"embed"
 	"encoding/gob"
 	"encoding/json"
+	"html/template"
 	"log"
 	"os"
 	"path/filepath"
@@ -80,6 +81,12 @@ func main() {
 			files = append(files, path)
 		}
 		return nil
+	})
+
+	/* Load all custom function to pass to the template */
+	r.SetFuncMap(template.FuncMap{
+		"Last":     last,
+		"makePath": makePath,
 	})
 
 	r.LoadHTMLFiles(files...)

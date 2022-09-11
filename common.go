@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"regexp"
@@ -33,6 +34,34 @@ func removeEmptyStrings(s []string) []string {
 		}
 	}
 	return r
+}
+
+// Displays file size in human readable format "ByteCountDecimal"
+func ByteCountDecimal(b int64) string {
+	const unit = 1000
+	if b < unit {
+		return fmt.Sprintf("%d B", b)
+	}
+	div, exp := int64(unit), 0
+	for n := b / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB", float64(b)/float64(div), "kMGTPE"[exp])
+}
+
+// Displays file size in human readable format "ByteCountBinary"
+func ByteCountBinary(b int64) string {
+	const unit = 1024
+	if b < unit {
+		return fmt.Sprintf("%d B", b)
+	}
+	div, exp := int64(unit), 0
+	for n := b / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
 }
 
 func map2(data []string, f func(string) string) []string {

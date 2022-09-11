@@ -85,8 +85,9 @@ func main() {
 
 	/* Load all custom function to pass to the template */
 	r.SetFuncMap(template.FuncMap{
-		"Last":     last,
-		"makePath": makePath,
+		"Last":             last,
+		"makePath":         makePath,
+		"ByteCountDecimal": ByteCountDecimal,
 	})
 
 	r.LoadHTMLFiles(files...)

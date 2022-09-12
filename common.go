@@ -36,6 +36,17 @@ func removeEmptyStrings(s []string) []string {
 	return r
 }
 
+// contains checks if a string is present in a slice
+func contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Displays file size in human readable format "ByteCountDecimal"
 func ByteCountDecimal(b int64) string {
 	const unit = 1000

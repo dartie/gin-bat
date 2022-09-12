@@ -1,0 +1,3 @@
+[submodule "face-recognition"]
+	path = face-recognition
+	url = https://github.com/dartie/face-recognition

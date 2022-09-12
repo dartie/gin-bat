@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
@@ -121,6 +123,47 @@ func makePath(list []string, element string) string {
 	newPathString := strings.Join(newPathList, "/")
 
 	return newPathString
+}
+
+// unescapes Html text : write the text as it is
+func unescapeHtml(s string) template.HTML {
+	return template.HTML(s)
+}
+
+// make the path from a list of directories + the input element
+func setIconColor(filename string) string {
+	// "supportedExtensions" defined in "settings.go"
+	var style = ""
+	ext := filepath.Ext(filename)
+	ext = strings.Trim(strings.ToLower(ext), ".")
+
+	if val, ok := supportedExtensions[ext]; ok {
+		if val[1] == "" {
+			style = ""
+		} else {
+			style = fmt.Sprintf("color: %s", val[1])
+		}
+	}
+
+	return style
+}
+
+// make the path from a list of directories + the input element
+func setFileIcon(filename string) string {
+	// "supportedExtensions" defined in "settings.go"
+	var classText = "bi-file-earmark"
+	ext := filepath.Ext(filename)
+	ext = strings.Trim(strings.ToLower(ext), ".")
+
+	if val, ok := supportedExtensions[ext]; ok {
+		if val[0] == "" {
+			classText = "bi-filetype-" + ext
+		} else {
+			classText = val[0]
+		}
+	}
+
+	return classText
 }
 
 /* Built-in Handlers */

@@ -85,9 +85,13 @@ func main() {
 
 	/* Load all custom function to pass to the template */
 	r.SetFuncMap(template.FuncMap{
+		"safe":             unescapeHtml, // Django syntax
+		"unescapeHtml":     unescapeHtml,
 		"Last":             last,
 		"makePath":         makePath,
 		"ByteCountDecimal": ByteCountDecimal,
+		"SetFileIcon":      setFileIcon,
+		"setIconColor":     setIconColor,
 	})
 
 	r.LoadHTMLFiles(files...)

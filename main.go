@@ -87,6 +87,7 @@ func main() {
 	r.SetFuncMap(template.FuncMap{
 		"safe":             unescapeHtml, // Django syntax
 		"unescapeHtml":     unescapeHtml,
+		"Join":             join,
 		"Last":             last,
 		"makePath":         makePath,
 		"ByteCountDecimal": ByteCountDecimal,

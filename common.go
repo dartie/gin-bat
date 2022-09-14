@@ -1,12 +1,17 @@
 package main
 
 import (
+	"archive/zip"
 	"bufio"
 	"database/sql"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -47,6 +52,21 @@ func contains(s []string, str string) bool {
 	return false
 }
 
+// detect the file type and return mimeType
+func detectFileType(filepath string) string {
+	file, err := os.Open(filepath)
+	checkErr(err)
+	defer file.Close()
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mimeType := http.DetectContentType(bytes)
+
+	return mimeType
+}
+
 // Displays file size in human readable format "ByteCountDecimal"
 func ByteCountDecimal(b int64) string {
 	const unit = 1000
@@ -73,6 +93,76 @@ func ByteCountBinary(b int64) string {
 		exp++
 	}
 	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
+}
+
+// this is the default sort order of golang os.Open -> ReadDir
+func SortFileNameAscend(files []os.FileInfo) {
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Name() < files[j].Name()
+	})
+}
+
+func SortFileNameDescend(files []os.FileInfo) {
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Name() > files[j].Name()
+	})
+}
+
+// compress a folder
+func zipFolder(source, target string) error {
+	// 1. Create a ZIP file and zip.Writer
+	f, err := os.Create(target)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	writer := zip.NewWriter(f)
+	defer writer.Close()
+
+	// 2. Go through all the files of the source
+	return filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 3. Create a local file header
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+
+		// set compression
+		header.Method = zip.Deflate
+
+		// 4. Set relative path of a file as the header name
+		header.Name, err = filepath.Rel(filepath.Dir(source), path)
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			header.Name += "/"
+		}
+
+		// 5. Create writer for the file header and save content of the file
+		headerWriter, err := writer.CreateHeader(header)
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		f, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		_, err = io.Copy(headerWriter, f)
+		return err
+	})
 }
 
 func map2(data []string, f func(string) string) []string {

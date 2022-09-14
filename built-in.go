@@ -117,6 +117,11 @@ func last(x int, a interface{}) bool {
 	return x == reflect.ValueOf(a).Len()-1
 }
 
+// join elements of a list in gin template
+func join(list []string, char string) string {
+	return strings.Join(list, char)
+}
+
 // make the path from a list of directories + the input element
 func makePath(list []string, element string) string {
 	newPathList := append(list, []string{element}...)

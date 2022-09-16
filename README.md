@@ -68,6 +68,8 @@ The remaining go files are supposed to be untouched, unless there are behaviours
     
     `<project-path>` will contain all the necessary files for running the server
 
+1. Review the `settings.json` file for database connection and host/port settings. Note, the `settings.json` supports comments starting with `//` (they are discarded while reading the lines)
+
 1. Run the server
     ```bash
     go run . runserver 

@@ -32,7 +32,15 @@ func readSettings() map[string]string {
 		}
 		settingsStr := string(settingsBytes)
 
-		json.Unmarshal([]byte(settingsStr), &settingsMap)
+		// remove json comments
+		var settingsStrNoComments string
+		for _, settingLine := range strings.Split(settingsStr, "\n") {
+			if !strings.HasPrefix(strings.TrimSpace(settingLine), "//") {
+				settingsStrNoComments += settingLine + "\n"
+			}
+		}
+
+		json.Unmarshal([]byte(settingsStrNoComments), &settingsMap)
 
 	} else {
 		settingsMap["host"] = "0.0.0.0"

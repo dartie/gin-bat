@@ -1,8 +1,16 @@
 {
     "host": "0.0.0.0",
     "port": "9003",
+
+    // database_type: 
+    // options available: "sqlite3", "postgres"
     "database_type": "sqlite3",
+    
+    // database_connection
+    // Sqlite: "./db.sqlite3"
+    // Postgres: "host=%s port=%d user=%s password=%s dbname=%s sslmode=disable"
     "database_connection": "./db.sqlite3",
+    
     "login_redirect": "/",
     "logout_redirect": "/login"
 }

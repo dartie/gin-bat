@@ -38,3 +38,11 @@ function disableTooltips() {
 //   trigger : 'hover'
 //   });
 // });
+
+/* Workaround function which destroys all tooltips when the trigger element is destroyed */
+function destroyTooltips() {
+    tooltipElements = document.getElementsByClassName('tooltip');
+    for (let i=0; i < tooltipElements.length; i++) {
+        tooltipElements[i].remove();
+    }
+}

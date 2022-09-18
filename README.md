@@ -32,6 +32,7 @@ Features:
     - [Create a new page](#create-a-new-page)
     - [Raise a html alert](#raise-a-html-alert)
     - [Redirect](#redirect)
+  - [Write compatible queries/sql commands](#write-compatible-queriessql-commands)
 
 ## Command line
 Provides the following sub-commands:
@@ -140,3 +141,13 @@ func myHandler(c *gin.Context) {
   c.HTML(http.StatusOK, "page.html", gin.H{"Url": "/"})
 }
 ```
+
+## Write compatible queries/sql commands
+1. Use ``` as string limitator instead of `"`
+    ```
+    myQuery := `SELECT id, username FROM "Users"`
+    ```
+1. Table must be in double quotes `SELECT id, username FROM "Users"`
+1. Avoid keyword as fields or table names (e.g: `key` and `Users` are used by Postgres)
+1. Parameter must be specified in the query string with `$1`, `$2` etc., not with `?`
+1. Bool values needs to be expressed with `0` (False) and `1` (True)

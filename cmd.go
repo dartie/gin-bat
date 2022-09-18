@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -26,6 +25,7 @@ import (
 
 var appName = "MyWebApp"
 var Version = "1.0"
+var cwd, errCwd = os.Getwd()
 
 /* Arguments command line */
 var parser = argparse.NewParser(appName+" "+Version, ``, nil)
@@ -36,6 +36,7 @@ var deleteUserCommand = parser.AddCommand("delete-user", "Delete an existing use
 var changePasswordCommand = parser.AddCommand("change-password", "Change password for an existing user", nil)
 var createUserTokenCommand = parser.AddCommand("create-token", "Create a new user", nil)
 var displayUserTokenCommand = parser.AddCommand("display-token", "Display token for a given user", nil)
+var generateSqlFilesCommand = parser.AddCommand("generate-sql", "Generate the sql files for all compatible databases", &argparse.ParserConfig{DisableDefaultShowHelp: true})
 var runserverCommand = parser.AddCommand("runserver", "Run the server", &argparse.ParserConfig{DisableDefaultShowHelp: true})
 
 // Variables for create-project command
@@ -78,6 +79,9 @@ var createUserTokenStrictExpiration *bool
 
 // Variables for display-token command
 var displayUserTokenUser *string
+
+// Variables for display-token command
+var generateSqlFilesDbType *string
 
 // Variables for runserver command
 var host *string
@@ -159,6 +163,10 @@ func initcmd() {
 		createUserToken()
 	}
 
+	if generateSqlFilesCommand.Invoked {
+		generateSqlFiles()
+	}
+
 	if displayUserTokenCommand.Invoked {
 		displayUserToken()
 	}
@@ -177,12 +185,12 @@ func createProject() {
 
 	/* Set name for go project */
 	gomodFilePath := filepath.Join(*createProjectPath, "go.mod")
-	input, errReadFile := ioutil.ReadFile(gomodFilePath)
+	input, errReadFile := os.ReadFile(gomodFilePath)
 	checkErrCmd(errReadFile, fmt.Sprintf("%s", errReadFile), 1)
 
 	output := bytes.Replace(input, []byte("module ginbat"), []byte("module "+projectName), -1)
 
-	errWriteFile := ioutil.WriteFile(gomodFilePath, output, 0666)
+	errWriteFile := os.WriteFile(gomodFilePath, output, 0666)
 	checkErrCmd(errWriteFile, fmt.Sprintf("%s", errWriteFile), 1)
 
 	if projectDir == "." {
@@ -197,11 +205,11 @@ func createProject() {
 }
 
 func createUser() {
-	sqlInsertString := `INSERT INTO User( 
-		Id, username, password, first_name, last_name, email, birthday, picture, phone, date_joined, last_login, role, is_admin, active
+	sqlInsertString := `INSERT INTO "Users" ( 
+		username, password, first_name, last_name, email, birthday, picture, phone, date_joined, last_login, role, is_admin, active
 		)
 		VALUES
-		(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 		`
 
 	// Check inputs
@@ -211,9 +219,9 @@ func createUser() {
 	}
 
 	// Check if new profile already exists
-	key := strings.ToUpper(*createUserUser)
-	query := "SELECT username FROM User where UPPER(username) = ?"
-	row := db.QueryRow(query, key)
+	tokenKey := strings.ToUpper(*createUserUser)
+	query := `SELECT username FROM Users where UPPER(username) = ?`
+	row := db.QueryRow(query, tokenKey)
 	var dbid interface{}
 	queryErr := row.Scan(&dbid)
 	if queryErr == nil {
@@ -304,6 +312,7 @@ func createUser() {
 	}
 
 	var adminInputString = "NO"
+	var createUserAdminInt = 0 // for query insert
 	if !*createUserAdmin {
 		var adminInput string
 		color.Cyan.Print("Is the user Admin? (Y\\n):\n>")
@@ -312,9 +321,11 @@ func createUser() {
 		if strings.ToUpper(adminInput) == "Y" {
 			*createUserAdmin = true
 			adminInputString = "YES"
+			createUserAdminInt = 1
 		}
 	} else {
 		adminInputString = "YES"
+		createUserAdminInt = 1
 	}
 
 	// Print Summary
@@ -341,15 +352,15 @@ func createUser() {
 
 	sqlCommand, err := db.Prepare(sqlInsertString)
 	checkErrCmd(err, fmt.Sprintf("%s", err), 1)
-	sqlResult, sqlErr := sqlCommand.Exec(*createUserUser, hashedPassword, *createUserFirstname, *createUserLastname, *createUserEmail, *createUserBirthday, profileData, *createUserPhone, nowSqliteFormat(), "", "", *createUserAdmin, true)
+	sqlResult, sqlErr := sqlCommand.Exec(*createUserUser, hashedPassword, *createUserFirstname, *createUserLastname, *createUserEmail, *createUserBirthday, profileData, *createUserPhone, nowSqliteFormat(), "", "", createUserAdminInt, 1)
 	var status int64
 	var message string
 	if sqlErr == nil {
-		recordId, err := sqlResult.LastInsertId()
+		recordId, err := sqlResult.LastInsertId() // doesn't work with Postgres.
 		if err != nil {
 			recordId = 0
 		}
-		message = fmt.Sprintf("User \"%s\" - Id = \"%d\" has been created successfully", *createUserUser, recordId)
+		message = fmt.Sprintf("User \"%s\" has been created successfully", *createUserUser)
 		status = recordId
 		color.Green.Println(message)
 
@@ -370,9 +381,9 @@ func updateUser() {
 	}
 
 	// Check if the profile exists
-	key := strings.ToUpper(*updateUserUser)
-	query := "SELECT Id, username, first_name, last_name, email, birthday, phone, picture, date_joined, last_login, role, is_admin, active FROM User where UPPER(username) = ?"
-	row := db.QueryRow(query, key)
+	tokenKey := strings.ToUpper(*updateUserUser)
+	query := `SELECT Id, username, first_name, last_name, email, birthday, phone, picture, date_joined, last_login, role, is_admin, active FROM "Users" WHERE UPPER(username) = $1`
+	row := db.QueryRow(query, tokenKey)
 	var dbid int
 	var dbisadmin, dbactive bool
 	var dbusername, dbfirstname, dblastname, dbemail, dbbirthday, dbphone, dbdatejoined, dblastlogin, dbrole string
@@ -528,6 +539,7 @@ func updateUser() {
 		}
 	}
 
+	var updateUserAdminInt int
 	if !*updateUserAdmin {
 		color.Cyan.Print("Is the user Admin? (Y\\n):\n>")
 		color.Yellow.Printf("Current value: \"%v\"", dbisadmin)
@@ -540,11 +552,14 @@ func updateUser() {
 		} else if strings.ToUpper(InputUpdateUserAdmin) == "Y" || strings.ToUpper(InputUpdateUserAdmin) == "YES" {
 			// overwrite previous value with null
 			*updateUserAdmin = true
+			updateUserAdminInt = 1
 		} else {
 			*updateUserAdmin = false
+			updateUserAdminInt = 0
 		}
 	}
 
+	var updateUserActiveInt int
 	if !*updateUserActive {
 		color.Cyan.Print("Is the user Active? (Y\\n):\n>")
 		color.Yellow.Printf("Current value: \"%v\"", dbactive)
@@ -557,8 +572,10 @@ func updateUser() {
 		} else if strings.ToUpper(InputUpdateUserActive) == "Y" || strings.ToUpper(InputUpdateUserActive) == "YES" {
 			// overwrite previous value with null
 			*updateUserActive = true
+			updateUserActiveInt = 1
 		} else {
 			*updateUserActive = false
+			updateUserActiveInt = 0
 		}
 	}
 
@@ -638,13 +655,13 @@ func updateUser() {
 	}
 
 	// DB Update
-	sqlUpdateString := `UPDATE User 
-	SET username=?, first_name=?, last_name=?, email=?, birthday=?, picture=?, phone=?, role=?, is_admin=?, active=?
-	WHERE id=?
+	sqlUpdateString := `UPDATE "Users" 
+	SET username=$1, first_name=$2, last_name=$3, email=$4, birthday=$5, picture=$6, phone=$7, role=$8, is_admin=$9, active=$10
+	WHERE id=$11;
 	`
 	sqlCommand, err := db.Prepare(sqlUpdateString)
 	checkErrCmd(err, fmt.Sprintf("%s", err), 1)
-	_, sqlErr := sqlCommand.Exec(*updateUserUser, *updateUserFirstname, *updateUserLastname, *updateUserEmail, *updateUserBirthday, profileData, *updateUserPhone, "", *updateUserAdmin, *updateUserActive, dbid)
+	_, sqlErr := sqlCommand.Exec(*updateUserUser, *updateUserFirstname, *updateUserLastname, *updateUserEmail, *updateUserBirthday, profileData, *updateUserPhone, "", updateUserAdminInt, updateUserActiveInt, dbid)
 	var status int
 	var message string
 	if sqlErr == nil {
@@ -664,7 +681,7 @@ func updateUser() {
 }
 
 func deleteUser() {
-	sqlDeleteString := `DELETE FROM User WHERE username=?`
+	sqlDeleteString := `DELETE FROM Users WHERE username=?`
 
 	if *deleteUserUser == "" {
 		// Ask username to remove
@@ -673,7 +690,7 @@ func deleteUser() {
 	}
 
 	// Check if the user exists
-	query := "SELECT Id, username, first_name, last_name, email, birthday, phone, date_joined, last_login, role, is_admin, active FROM User WHERE username=?;"
+	query := `SELECT Id, username, first_name, last_name, email, birthday, phone, date_joined, last_login, role, is_admin, active FROM "Users" WHERE username=$1;`
 	row := db.QueryRow(query, *deleteUserUser)
 
 	var dbid int
@@ -707,13 +724,8 @@ func deleteUser() {
 	if strings.ToUpper(confirm) == "Y" {
 		sqlCommand, err := db.Prepare(sqlDeleteString)
 		checkErrCmd(err, fmt.Sprintf("%s", err), 1)
-		sqlResult, sqlErr := sqlCommand.Exec(*deleteUserUser)
+		_, sqlErr := sqlCommand.Exec(*deleteUserUser)
 		checkErrCmd(sqlErr, fmt.Sprintf("%s", sqlErr), 1)
-		recordId, err := sqlResult.LastInsertId()
-		if err != nil {
-			recordId = 0
-		}
-		_ = recordId
 		color.Green.Printf("User \"%s\" removed\n", *deleteUserUser)
 		os.Exit(0)
 	} else {
@@ -730,7 +742,7 @@ func changePassword() {
 	}
 
 	// Check if the user exists
-	query := "SELECT Id, username, first_name, last_name, email, birthday, phone, date_joined, last_login, role, is_admin, active FROM User WHERE username=?;"
+	query := `SELECT Id, username, first_name, last_name, email, birthday, phone, date_joined, last_login, role, is_admin, active FROM "Users" WHERE username=$1`
 	row := db.QueryRow(query, *changePasswordUser)
 
 	var dbid int
@@ -771,7 +783,7 @@ func changePassword() {
 	checkErrCmd(hashedPasswordErr, fmt.Sprintf("%s", hashedPasswordErr), 1)
 
 	// Update User with new password
-	updatePasswordSql := `UPDATE User SET password=? WHERE id=?`
+	updatePasswordSql := `UPDATE "Users" SET password=$1 WHERE id=$2`
 
 	sqlCommand, err := db.Prepare(updatePasswordSql)
 	checkErrCmd(err, fmt.Sprintf("%s", err), 1)
@@ -799,7 +811,7 @@ func createUserToken() {
 	}
 
 	// Check if the user exists
-	query := "SELECT Id, username, first_name, last_name, email, birthday, phone, date_joined, last_login, role, is_admin, active FROM User WHERE username=?;"
+	query := `SELECT Id, username, first_name, last_name, email, birthday, phone, date_joined, last_login, role, is_admin, active FROM "Users" WHERE username=$1;`
 	row := db.QueryRow(query, *createUserTokenUser)
 	selectErr := row.Scan(&u.Id, &u.Username, &u.FirstName, &u.LastName, &u.Email, &u.Birthday, &u.Phone, &u.DateJoined, &u.LastLogin, &u.Role, &u.IsAdmin, &u.Active)
 
@@ -856,18 +868,18 @@ func createUserToken() {
 	var dbId int
 	var sqlInsertString string
 
-	query = "SELECT user_id FROM AuthToken WHERE user_id=?"
+	query = `SELECT user_id FROM "AuthToken" WHERE user_id=$1`
 	row = db.QueryRow(query, u.Id)
 	selectErr = row.Scan(&dbId)
 	if selectErr == nil {
-		sqlInsertString = `UPDATE AuthToken SET key=?, created=?, expiration=? WHERE user_id=?`
+		sqlInsertString = `UPDATE "AuthToken" SET token_key=$1, created=$2, expiration=$3 WHERE user_id=$4`
 	} else {
 		// A record is already present -> UPDATE
-		sqlInsertString = `INSERT INTO AuthToken ( 
-			key, created, expiration, user_id
+		sqlInsertString = `INSERT INTO "AuthToken" ( 
+			token_key, created, expiration, user_id
 			)
 			VALUES
-			(?, ?, ?, ?)
+			($1, $2, $3, $4)
 			`
 	}
 
@@ -893,6 +905,42 @@ func createUserToken() {
 	os.Exit(0)
 }
 
+func generateSqlFiles() {
+	sqlFolder := "sql"
+	pgExt := "-pg.sql"
+	fileOpen, err := os.Open(sqlFolder)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer fileOpen.Close()
+	files, _ := fileOpen.Readdir(0)
+
+	for _, f := range files {
+		if strings.HasSuffix(f.Name(), pgExt) {
+			continue
+		}
+		ext := filepath.Ext(f.Name())
+		filename := f.Name()[0 : len(f.Name())-len(ext)]
+		InputFileFullpath := filepath.Join(cwd, sqlFolder, f.Name())
+		OutputFileFullpath := filepath.Join(cwd, sqlFolder, filename+pgExt)
+		content, err := os.ReadFile(InputFileFullpath)
+		checkErrCmd(err, fmt.Sprint(err), 1)
+
+		// Postgres
+		newContent := regexp.MustCompile(`(?i)BLOB`).ReplaceAllString(string(content), "bytea")
+		newContent = regexp.MustCompile(`(?i)DATETIME`).ReplaceAllString(string(newContent), "DATE")
+
+		err = os.WriteFile(OutputFileFullpath, []byte(newContent), 0644)
+		checkErrCmd(err, fmt.Sprint(err), 1)
+	}
+
+	// Print ok
+	fmt.Println() // Blank line
+	color.Green.Println("Files for Postgres generated correctly")
+	fmt.Println() // Blank line
+	os.Exit(0)
+}
+
 func displayUserToken() {
 	if *displayUserTokenUser == "" {
 		// Ask username to remove
@@ -900,12 +948,12 @@ func displayUserToken() {
 		*displayUserTokenUser = readStdin()
 	}
 
-	query := `SELECT key, expiration
-		FROM AuthToken
-		INNER JOIN User
-		ON AuthToken.user_id = User.Id
-		WHERE User.username=?;
-		`
+	query := `SELECT token_key, expiration
+	FROM "AuthToken"
+	INNER JOIN "Users"
+	ON "AuthToken".user_id = "Users".Id
+	WHERE "Users".username = $1;
+	`
 
 	var dbKey string
 	var dbKeyExpiration string

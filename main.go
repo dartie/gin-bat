@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -48,6 +49,7 @@ func readSettings() map[string]string {
 		settingsMap["port"] = "8000"
 		settingsMap["database_type"] = "sqlite3"
 		settingsMap["database_connection"] = "./db.sqlite3"
+		settingsMap["SECRET_KEY"] = RandStringBytesMaskImprSrcUnsafe(60)
 		settingsMap["logout_redirect"] = "/login"
 		settingsMap["login_redirect"] = "/home"
 	}
@@ -73,10 +75,6 @@ func main() {
 	r := gin.Default()
 
 	/* Initialize Session */
-	// gob.Register(User{}) // Register the User structure
-	// store := cookie.NewStore([]byte("snaosnca"))
-	// r.Use(sessions.Sessions("SESSIONID", store))
-
 	store.Options.HttpOnly = true // since we are not accessing any cookies w/ JavaScript, set to true
 	store.Options.Secure = true   // requires secuire HTTPS connection
 	gob.Register(&User{})

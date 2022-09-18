@@ -11,6 +11,8 @@
     // Postgres: "host=%s port=%d user=%s password=%s dbname=%s sslmode=disable"
     "database_connection": "./db.sqlite3",
     
+    "SECRET_KEY": "secret-key",
+
     "login_redirect": "/",
     "logout_redirect": "/login"
 }

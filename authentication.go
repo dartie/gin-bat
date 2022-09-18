@@ -14,7 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var secret = []byte("super-secret")
+var secret = []byte(settingsMap["SECRET_KEY"])
 var store = sessions.NewCookieStore(secret)
 
 func LoginCorrect(user string, password string) int {
@@ -25,7 +25,7 @@ func LoginCorrect(user string, password string) int {
 	//access := loginCorrect("dartie", "pwd")
 	//_ = access
 
-	query := "SELECT id, username, password FROM User WHERE active=1 AND username=?;"
+	query := `SELECT id, username, password FROM "Users" WHERE active=1 AND username=$1;`
 	row := db.QueryRow(query, user)
 
 	var dbid int
@@ -113,7 +113,7 @@ func authToken(c *gin.Context) {
 		requestorId = claims["UserInfo"].(map[string]interface{})["id"].(float64)
 
 		// Check the token in the DB
-		query := "SELECT key, user_id FROM AuthToken WHERE key=?;"
+		query := `SELECT key, user_id FROM "AuthToken" WHERE key=$1;`
 		row := db.QueryRow(query, token)
 
 		var dbkey string
@@ -167,7 +167,7 @@ func postLoginHandler(c *gin.Context) {
 		session.Save(c.Request, c.Writer)
 
 		// Update the database with last_login field
-		sqlInsertString := "UPDATE User SET last_login=? WHERE id=?"
+		sqlInsertString := `UPDATE "Users" SET last_login=$1 WHERE id=$2`
 		sqlCommand, err := db.Prepare(sqlInsertString)
 		checkErr(err)
 		_, sqlErr := sqlCommand.Exec(nowSqliteFormat(), user.Id)

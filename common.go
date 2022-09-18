@@ -7,12 +7,15 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
+	"unsafe"
 )
 
 func readStdinOriginal() string {
@@ -22,11 +25,39 @@ func readStdinOriginal() string {
 	return inputText
 }
 
+// reads input from user
 func readStdin() string {
 	reader := bufio.NewReader(os.Stdin)
 	inputText, _ := reader.ReadString('\n')
 
 	return strings.TrimSpace(inputText)
+}
+
+// generates random string (most efficient: https://stackoverflow.com/a/31832326/4768254)
+func RandStringBytesMaskImprSrcUnsafe(n int) string {
+	var src = rand.NewSource(time.Now().UnixNano())
+	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	const (
+		letterIdxBits = 6                    // 6 bits to represent a letter index
+		letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+		letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+	)
+
+	b := make([]byte, n)
+	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
+	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = src.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			b[i] = letterBytes[idx]
+			i--
+		}
+		cache >>= letterIdxBits
+		remain--
+	}
+
+	return *(*string)(unsafe.Pointer(&b))
 }
 
 // removeEmptyStrings - Use this to remove empty string values inside an array.

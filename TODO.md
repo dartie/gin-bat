@@ -43,6 +43,14 @@
 ## DB
 NULL values are not handled, therefore the database has to be created using `NOT NULL` for all fields, to make sure no exceptions are raised in case of queries.
 
+## Cookies
+
+```go
+/* Initialize Session */
+// gob.Register(User{}) // Register the User structure
+// store := cookie.NewStore([]byte("snaosnca"))
+// r.Use(sessions.Sessions("SESSIONID", store))
+```
 
 # Troubleshooting
 

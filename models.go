@@ -37,7 +37,7 @@ func (u *User) getFields() []string {
 }
 
 func (u *User) getUserById(Id int) error {
-	query := "SELECT * FROM User WHERE active=1 AND Id=?;"
+	query := `SELECT * FROM "Users" WHERE active=1 AND Id=$1;`
 	row := db.QueryRow(query, Id)
 	err := row.Scan(&u.Id, &u.Username, &u.Password, &u.FirstName, &u.LastName, &u.Email, &u.Birthday, &u.Picture, &u.Phone, &u.DateJoined, &u.LastLogin, &u.Role, &u.IsAdmin, &u.Active)
 
@@ -54,7 +54,7 @@ func (u *User) getUserById(Id int) error {
 }
 
 func (u *User) getUserByUsername() error {
-	query := "SELECT id, username, password FROM User WHERE active=1 AND username=?;"
+	query := `SELECT id, username, password FROM "Users" WHERE active=1 AND username=$1;`
 	row := db.QueryRow(query, u.Username)
 	err := row.Scan(&u.Id, &u.Username, &u.Password)
 	if err != nil {

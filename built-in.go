@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -34,15 +34,35 @@ func checkErrCmd(err error, msg string, errCode int) {
 	}
 }
 
-func getCheckBoxValue(c *gin.Context, field string) bool {
+func getCheckBoxValue(c *gin.Context, field string) (bool, int) {
 	fieldValue := c.PostForm(field)
-	var fieldValueBool bool
+	var fieldValueInt int   //needed by Postgres
+	var fieldValueBool bool // works with other Database
 	if fieldValue == "" {
 		fieldValueBool = false
+		fieldValueInt = 0
 	} else {
 		fieldValueBool = true
+		fieldValueInt = 1
 	}
-	return fieldValueBool
+	return fieldValueBool, fieldValueInt
+}
+
+// converts all query strings using question marks as paramater "=?" to dollars parameters "=$1, =$2.."
+func replaceQuestionMarksWithDollarsInQuery(queryString string) string {
+	var newQueryString string
+	dollarsCount := 0
+
+	for _, char := range queryString {
+		if char == '?' {
+			dollarsCount += 1
+			newQueryString += "$" + fmt.Sprint(dollarsCount)
+		} else {
+			newQueryString += string(char)
+		}
+	}
+
+	return newQueryString
 }
 
 func dateToDbFormat(fieldDate string) string {
@@ -76,6 +96,7 @@ func getCurrentUser(c *gin.Context) *User {
 	getUserError := LoggedUser.getUserById(userId)
 
 	if getUserError == nil {
+		checkErr(getUserError)
 		return &LoggedUser
 	} else {
 		return nil
@@ -183,7 +204,7 @@ func postCreateUserHandler(c *gin.Context) {
 	phone := c.DefaultPostForm("mobile", "")
 	email := c.DefaultPostForm("email", "")
 	birthday := c.DefaultPostForm("birthday", "")
-	isAdmin := getCheckBoxValue(c, "isAdmin")
+	_, isAdminInt := getCheckBoxValue(c, "isAdmin")
 	picture, _ := c.FormFile("upload_profile_pic")
 
 	var message string
@@ -195,7 +216,7 @@ func postCreateUserHandler(c *gin.Context) {
 
 	// Check if new profile already exists
 	key := strings.ToUpper(username)
-	query := "SELECT username from User where UPPER(username) = ?"
+	query := `SELECT username from "Users" where UPPER(username) = $1;`
 	row := db.QueryRow(query, key)
 	var dbid interface{}
 	err := row.Scan(&dbid)
@@ -211,28 +232,29 @@ func postCreateUserHandler(c *gin.Context) {
 		file, err := picture.Open()
 		checkErr(err)
 		defer file.Close()
-		profileData, err = ioutil.ReadAll(file)
+		profileData, err = io.ReadAll(file)
 		checkErr(err)
 	} else {
 		profileData = []uint8{0}
 	}
 
-	sqlInsertString := `INSERT INTO User( 
-Id, username, password, first_name, last_name, email, birthday, picture, phone, date_joined, last_login, role, is_admin, active
+	sqlInsertString := `INSERT INTO "Users" ( 
+username, password, first_name, last_name, email, birthday, picture, phone, date_joined, last_login, role, is_admin, active
 )
 VALUES
-(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);
 `
 	sqlCommand, err := db.Prepare(sqlInsertString)
 	checkErr(err)
-	sqlResult, sqlErr := sqlCommand.Exec(username, hashedPassword, firstName, lastName, email, birthday, profileData, phone, nowSqliteFormat(), "", "", isAdmin, true)
+	sqlResult, sqlErr := sqlCommand.Exec(username, hashedPassword, firstName, lastName, email, birthday, profileData, phone, nowSqliteFormat(), "", "", isAdminInt, 1)
 
 	if sqlErr == nil {
-		recordId, err := sqlResult.LastInsertId()
+		recordId, err := sqlResult.LastInsertId() // doesn't work with Postgres.
 		if err != nil {
 			recordId = 0
 		}
-		message = fmt.Sprintf("User \"%s\" - Id = \"%d\" has been created successfully", username, recordId)
+		_ = recordId // TODO: print log.
+		message = fmt.Sprintf("User \"%s\" has been created successfully", username)
 		status = "0"
 	} else {
 		message = fmt.Sprintf("Issues creating user %s", username)
@@ -250,7 +272,7 @@ func postUpdateUserHandler(c *gin.Context) {
 func updateUserFunc(c *gin.Context, admin bool) {
 	userInfoMap := getCurrentUserMap(c)
 	username := c.DefaultPostForm("username", "")
-	isAdmin := getCheckBoxValue(c, "isAdmin")
+	_, isAdminInt := getCheckBoxValue(c, "isAdmin")
 	firstName := c.DefaultPostForm("first_name", "")
 	lastName := c.DefaultPostForm("last_name", "")
 	phone := c.DefaultPostForm("mobile", "")
@@ -260,7 +282,7 @@ func updateUserFunc(c *gin.Context, admin bool) {
 
 	var sqlUpdateString string
 
-	sqlUpdateString = `UPDATE User SET
+	sqlUpdateString = `UPDATE "Users" SET
 	%s
 	WHERE
 	id = ?;
@@ -276,7 +298,7 @@ func updateUserFunc(c *gin.Context, admin bool) {
 		file, err := picture.Open()
 		checkErr(err)
 		defer file.Close()
-		profileData, err = ioutil.ReadAll(file)
+		profileData, err = io.ReadAll(file)
 		checkErr(err)
 		queryFields = append(queryFields, "picture")
 		queryParameters = append(queryParameters, profileData)
@@ -287,11 +309,12 @@ func updateUserFunc(c *gin.Context, admin bool) {
 
 	if admin {
 		queryFields = append(queryFields, "is_admin")
-		queryParameters = append(queryParameters, isAdmin)
+		queryParameters = append(queryParameters, isAdminInt)
 	}
 
 	queryFieldsString := strings.Trim(strings.Join(queryFields, "=?, "), ", ") + "=? "
 	sqlUpdateString = fmt.Sprintf(sqlUpdateString, queryFieldsString)
+	sqlUpdateString = replaceQuestionMarksWithDollarsInQuery(sqlUpdateString)
 	sqlCommand, err := db.Prepare(sqlUpdateString)
 	checkErr(err)
 
@@ -324,7 +347,7 @@ func validateNewUser(c *gin.Context) {
 	var errors []string
 
 	key := strings.ToUpper(username)
-	query := "SELECT username from User where UPPER(username) = ?"
+	query := `SELECT username from "Users" where UPPER(username) = $1;`
 	row := db.QueryRow(query, key)
 	var dbid interface{}
 	err := row.Scan(&dbid)

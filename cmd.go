@@ -552,11 +552,15 @@ func updateUser() {
 		} else if strings.ToUpper(InputUpdateUserAdmin) == "Y" || strings.ToUpper(InputUpdateUserAdmin) == "YES" {
 			// overwrite previous value with null
 			*updateUserAdmin = true
-			updateUserAdminInt = 1
 		} else {
 			*updateUserAdmin = false
-			updateUserAdminInt = 0
 		}
+	}
+
+	if *updateUserAdmin {
+		updateUserAdminInt = 1
+	} else {
+		updateUserAdminInt = 0
 	}
 
 	var updateUserActiveInt int
@@ -572,11 +576,15 @@ func updateUser() {
 		} else if strings.ToUpper(InputUpdateUserActive) == "Y" || strings.ToUpper(InputUpdateUserActive) == "YES" {
 			// overwrite previous value with null
 			*updateUserActive = true
-			updateUserActiveInt = 1
 		} else {
 			*updateUserActive = false
-			updateUserActiveInt = 0
 		}
+	}
+
+	if *updateUserActive {
+		updateUserActiveInt = 1
+	} else {
+		updateUserActiveInt = 0
 	}
 
 	// Ask for username change

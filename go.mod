@@ -1,4 +1,4 @@
-module ginbat
+module gin-bat
 
 go 1.18
 

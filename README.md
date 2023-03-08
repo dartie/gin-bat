@@ -143,7 +143,7 @@ func myHandler(c *gin.Context) {
 ```
 
 ## Write compatible queries/sql commands
-1. Use ``` as string limitator instead of `"`
+1. Use `` ` `` as string limitator instead of `"`
     ```
     myQuery := `SELECT id, username FROM "Users"`
     ```

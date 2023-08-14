@@ -67,6 +67,11 @@ func routes(r *gin.Engine) {
 	// Validate form
 	admin.POST("/validate-form", validateNewUser)
 
-	/* My routes : Any custom route */
+	/* Content routes */
+	access := r.Group("/").Use(auth).Use(canViewTheContent)
+	access.GET("/list/*path", listFileHandler)
+	r.GET("/display/*path", viewFileHandler)
+	r.GET("/downloadFolder/*path", downloadFolderHandler)
 
+    /* My routes : Any custom route */
 }

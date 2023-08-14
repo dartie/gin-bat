@@ -1,0 +1,129 @@
+{{ template "Header"  . }}
+{{ template "Imports" . }}
+{{ template "Middle"  . }}
+{{ template "Topbar"  . }}
+<!-- Content -->
+<style>
+    .sticky {
+        position: -webkit-sticky; /* Safari */
+        position: sticky;
+        top: 0;
+        z-index: 9999999999;
+    }
+
+    th {
+      height: 82px;  /* Needs to cover the nav bar */
+    }
+
+    .folder, .file {
+        cursor: pointer;
+    }
+
+    .table {
+        --bs-table-hover-bg: rgb(47 109 181 / 12%)  /* #2f6db51f */
+    }
+
+    .btn {
+      margin: 2px;
+    }
+</style>
+
+<div style="margin-left: 10px;">
+  <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ .rootPath }}">/root</a></li>
+        
+        {{$hrefPath := (printf "%v" .rootPath)}}
+        {{range $index, $element := .thisFolder.Path }}
+        {{ $hrefPath = (printf "%v/%v" $hrefPath $element) }}
+        {{if Last $index $.thisFolder.Path }}  
+        <li class="breadcrumb-item active" aria-current="page">{{.}}</li>      
+        {{else}}
+        <li class="breadcrumb-item"><a href="{{ $hrefPath }}">{{.}}</a></li>
+        {{end}}
+        {{end}}
+      </ol>
+  </nav>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <!--<button type="button" class="btn btn-primary">Understood</button>-->
+      </div>
+    </div>
+  </div>
+</div>
+<!-- To add in the trigger button element -->
+<!-- data-bs-toggle="modal" data-bs-target="#staticBackdrop" -->
+
+<table class="table table-hover">
+    <thead class="sticky" style="background: white">
+      <tr>
+        <th scope="col">Filename</th>
+        <th scope="col">Size</th>
+        <th scope="col">Type</th>
+        <th scope="col">Date</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {{range $index, $element := .thisFolder.Dirs }}    
+    <tr class="table-warning folder">
+        <td><i class="bi bi-folder"></i> <a href="{{$.rootPath}}/{{ makePath $.thisFolder.Path $element.Name }}"> {{$element.Name}} </a> </td>
+        <td> {{ByteCountDecimal $element.Size}} </td>
+        <td> </td>
+        <td> {{$element.CreationDate.Format "Jan 02, 2006 15:04:05 UTC"}} </td>
+        <td> </td>
+    </tr>
+    {{end}}
+
+    {{range $index, $element := .thisFolder.Files }}    
+    <tr class="file">
+        <td><i class="bi {{ SetFileIcon $element.Name }}" style="{{ setIconColor $element.Name | safe}}"></i> <a href="{{ $.rootPath }}/{{ makePath $.thisFolder.Path $element.Name }}"> {{$element.Name}} </a> </td>
+        <td> {{ByteCountDecimal $element.Size}} </td>
+        <td> {{$element.Type}} </td>
+        <td> {{$element.CreationDate.Format "Jan 02, 2006 15:04:05 UTC"}} </td>
+        <td> 
+          <button type="button" class="btn btn-success" onclick="window.open('/display/{{ makePath $.thisFolder.Path $element.Name }}','_blank')"><i class="bi bi-eye-fill"></i></button>
+          <button type="button" class="btn btn-secondary" onclick="location.href='{{ makePath $.thisFolder.Path $element.Name }}'"><i class="bi bi-download"></i></button>
+        </td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+
+<script>
+function base64ToBlob( base64, type = "application/octet-stream" ) {
+  const binStr = atob( base64 );
+  const len = binStr.length;
+  const arr = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    arr[ i ] = binStr.charCodeAt( i );
+  }
+  return new Blob( [ arr ], { type: type } );
+}
+
+function displayPdf(base64String) {
+  var base64 = (base64String)
+  const blob = base64ToBlob( base64, 'application/pdf' );
+  const url = URL.createObjectURL( blob );
+  const pdfWindow = window.open("");
+  pdfWindow.document.write("<iframe width='100%' height='100%' src='" + url + "'></iframe>");
+  
+}
+</script>
+
+{{ template "Footer"  . }}
+</body>
+</html>

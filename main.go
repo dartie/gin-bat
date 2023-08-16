@@ -4,9 +4,7 @@ import (
 	"database/sql"
 	"embed"
 	"encoding/gob"
-	"encoding/json"
 	"html/template"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,43 +21,21 @@ var db *sql.DB
 //go:embed all:static all:templates *.go db.sqlite3 settings.json go.mod go.sum
 var fsProjectFiles embed.FS
 
-func readSettings() map[string]string {
-	/* Read settings */
-	settingsMap = make(map[string]string)
+func main() {
+	/* Load settings */
 	settingsFile := "settings.json"
 	if _, err := os.Stat(settingsFile); err == nil {
-		settingsBytes, err := os.ReadFile(settingsFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		settingsStr := string(settingsBytes)
-
-		// remove json comments
-		var settingsStrNoComments string
-		for _, settingLine := range strings.Split(settingsStr, "\n") {
-			if !strings.HasPrefix(strings.TrimSpace(settingLine), "//") {
-				settingsStrNoComments += settingLine + "\n"
-			}
-		}
-
-		json.Unmarshal([]byte(settingsStrNoComments), &settingsMap)
-
 	} else {
 		settingsMap["host"] = "0.0.0.0"
 		settingsMap["port"] = "8000"
+		settingsMap["debug-mode"] = "false"
 		settingsMap["database_type"] = "sqlite3"
 		settingsMap["database_connection"] = "./db.sqlite3"
 		settingsMap["SECRET_KEY"] = RandStringBytesMaskImprSrcUnsafe(60)
 		settingsMap["logout_redirect"] = "/login"
 		settingsMap["login_redirect"] = "/home"
 	}
-
-	return settingsMap
-}
-
-func main() {
-	/* Load settings */
-	settingsMap = readSettings()
+	settingsMap = readSettings(settingsFile)
 
 	/* Connect to database */
 	var dberr error
@@ -72,6 +48,9 @@ func main() {
 	initcmd()
 
 	/* Initialize Gin */
+	if settingsMap["debug-mode"] == "false" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 
 	/* Initialize Session */
@@ -109,6 +88,8 @@ func main() {
 	/* Load all routes from urls.go file */
 	routes(r)
 
+	startup()
+
 	/* Run the server */
 	if runserverCommand.Invoked {
 		// By default it serves on :8080 unless a
@@ -117,5 +98,4 @@ func main() {
 
 		r.Run(*host + ":" + *port)
 	}
-
 }

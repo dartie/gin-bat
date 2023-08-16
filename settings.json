@@ -1,6 +1,7 @@
 {
     "host": "0.0.0.0",
     "port": "9003",
+    "debug-mode": "false",
 
     // database_type: 
     // options available: "sqlite3", "postgres"

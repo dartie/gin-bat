@@ -3,7 +3,10 @@ package main
 import (
 	"archive/zip"
 	"bufio"
+	"bytes"
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -12,17 +15,169 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unsafe"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gookit/color"
 )
 
+/* read settings functions */
+func removeJsonComments(jsonStr string) string {
+	// remove comments from json file
+	var jsonStrNoComments string
+	for _, settingLine := range strings.Split(jsonStr, "\n") {
+		if !strings.HasPrefix(strings.TrimSpace(settingLine), "//") {
+			jsonStrNoComments += settingLine + "\n"
+		}
+	}
+
+	return jsonStrNoComments
+}
+
+func readSettingsInterface(settingFile string) map[string]interface{} {
+	// read file
+	settingsBytes, err1 := os.ReadFile(settingFile)
+	if err1 != nil {
+		log.Fatal(err1)
+	}
+
+	settingsStr := string(settingsBytes)
+
+	settingsStrNoComments := removeJsonComments(settingsStr)
+
+	rawData := []byte(settingsStrNoComments)
+	var payload interface{}                  //The interface where we will save the converted JSON data.
+	err := json.Unmarshal(rawData, &payload) // Convert JSON data into interface{} type
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	m := payload.(map[string]interface{}) // To use the converted data we will need to convert it into a map[string]interface{}
+
+	return m
+}
+
+func readSettings(settingsFile string) map[string]string {
+	/* Read settings */
+	settingsMap = make(map[string]string)
+
+	if _, err := os.Stat(settingsFile); err == nil {
+		settingsBytes, err := os.ReadFile(settingsFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		settingsStr := string(settingsBytes)
+
+		// remove json comments
+		settingsStrNoComments := removeJsonComments(settingsStr)
+
+		json.Unmarshal([]byte(settingsStrNoComments), &settingsMap)
+
+	} else {
+		log.Fatalf(color.Red.Sprint(settingsFile + " does not exist!"))
+	}
+
+	return settingsMap
+}
+
+// Converts an interface slice of string to float
+func interfaceStringToFloat(inputSlice interface{}) []float64 {
+	var outputSlice []float64
+	if inputSlice == nil {
+		return outputSlice
+	}
+	for _, is := range inputSlice.([]interface{}) {
+		iss := is.(string)
+		floatNum, err := strconv.ParseFloat(iss, 64)
+		if err == nil {
+			outputSlice = append(outputSlice, floatNum)
+		}
+	}
+
+	return outputSlice
+}
+
+// json bind
+func BindWihtoutBindingTag(c *gin.Context, dest interface{}) error {
+	if c.ContentType() != "application/json" {
+		return errors.New("'BindWithoutBindingTag' only serves for application/json not for " + c.ContentType())
+	}
+	buf, e := io.ReadAll(c.Request.Body)
+	if e != nil {
+		return e
+	}
+	c.Request.Body = io.NopCloser(bytes.NewReader(buf))
+	a := json.Unmarshal(buf, &dest)
+	fmt.Printf("%s", a)
+
+	return a
+}
+
+/* General */
+
+// Get current working directory
+func getcwd() string {
+	path, _ := os.Getwd()
+
+	return path
+}
+
+// Get current source code file path
+func getSrcPath() string {
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return ""
+	}
+
+	return filepath.Dir(filename)
+}
+
+// Get executable path
+func getExePath() string {
+	ex, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	return filepath.Dir(ex)
+}
+
+// Read standard input text
+// :return: (string) text entered
 func readStdinOriginal() string {
 	reader := bufio.NewReader(os.Stdin)
 	inputText, _ := reader.ReadString('\n')
 
 	return inputText
+}
+
+// Check if regex is matched
+func reMatched(s string, regex string) bool {
+	r, _ := regexp.Compile(regex)
+	matches := r.FindAllStringSubmatch(s, -1)
+
+	return len(matches) > 0
+}
+
+// Mac address functions
+func validateMac(mac string) bool {
+	r, _ := regexp.Compile("^[0-9A-Fa-f]{12}$")
+	matches := r.FindAllStringSubmatch(mac, -1)
+
+	return len(matches) > 0
+}
+
+/* Strings */
+// Clean strings, remove non-ascii chars from string
+func cleanString(s string) string {
+	re := regexp.MustCompile("[[:^ascii:]]")
+	t := re.ReplaceAllLiteralString(s, "")
+
+	return t
 }
 
 // reads input from user
@@ -72,6 +227,20 @@ func removeEmptyStrings(s []string) []string {
 	return r
 }
 
+// contains checks if a string is present in a interface
+func containsInterface(s interface{}, str string) bool {
+	a := 1
+	_ = a
+	sSlice := s.([]interface{})
+	for _, v := range sSlice {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
+}
+
 // contains checks if a string is present in a slice
 func contains(s []string, str string) bool {
 	for _, v := range s {
@@ -81,6 +250,56 @@ func contains(s []string, str string) bool {
 	}
 
 	return false
+}
+
+// Remove element from slice
+func RemoveIndexSlice(s []string, index int) []string {
+	return append(s[:index], s[index+1:]...)
+}
+
+// Remove element from slice
+func RemoveIndexSliceNested(s [][]string, index int) [][]string {
+	return append(s[:index], s[index+1:]...)
+}
+
+// Insert int value in Slice
+func insertIntInNestedSlice(a [][]int, index int, value []int) [][]int {
+	if len(a) == index { // nil or empty slice or after last element
+		return append(a, value)
+	}
+	a = append(a[:index+1], a[index:]...) // index < len(a)
+	a[index] = value
+	return a
+}
+
+// Insert string value in Slice
+func insertStringInNestedSlice(a [][]string, index int, value []string) [][]string {
+	if len(a) == index { // nil or empty slice or after last element
+		return append(a, value)
+	}
+	a = append(a[:index+1], a[index:]...) // index < len(a)
+	a[index] = value
+	return a
+}
+
+// Insert int value in Slice
+func insertIntInSlice(a []int, index int, value int) []int {
+	if len(a) == index { // nil or empty slice or after last element
+		return append(a, value)
+	}
+	a = append(a[:index+1], a[index:]...) // index < len(a)
+	a[index] = value
+	return a
+}
+
+// Insert string value in Slice
+func insertStringInSlice(a []string, index int, value string) []string {
+	if len(a) == index { // nil or empty slice or after last element
+		return append(a, value)
+	}
+	a = append(a[:index+1], a[index:]...) // index < len(a)
+	a[index] = value
+	return a
 }
 
 // detect the file type and return mimeType

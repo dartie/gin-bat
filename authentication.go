@@ -113,7 +113,7 @@ func authToken(c *gin.Context) {
 		requestorId = claims["UserInfo"].(map[string]interface{})["id"].(float64)
 
 		// Check the token in the DB
-		query := `SELECT key, user_id FROM "AuthToken" WHERE key=$1;`
+		query := `SELECT token_key, user_id FROM "AuthToken" WHERE token_key=$1;`
 		row := db.QueryRow(query, token)
 
 		var dbkey string

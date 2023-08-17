@@ -1,0 +1,73 @@
+{{ define "Topbar" }}
+<!-- Top Navbar -->
+<nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+  <div class="container-fluid">
+    <button type="button" class="btn d-none d-md-block" data-bs-toggle="collapse" data-bs-target="#LeftSidebar">☰</button>
+
+    <a class="navbar-brand" href="#">Navbar</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Link</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Dropdown
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Action</a></li>
+            <li><a class="dropdown-item" href="#">Another action</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#">Something else here</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+        </li>
+      </ul>
+    </div>
+
+    <ul class="navbar-nav flex-row">
+      <li class="nav-item text-nowrap">
+        <button class="nav-link px-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSearch" aria-controls="navbarSearch" aria-expanded="false" aria-label="Toggle search">
+          <svg class="bi"><use xlink:href="#search"></use></svg>
+        </button>
+      </li>
+    </ul>
+
+    <ul class="navbar-nav flex-row d-md-none">
+      <li class="nav-item text-nowrap">
+        <button class="nav-link px-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+          <svg class="bi"><use xlink:href="#list"></use></svg>
+        </button>
+      </li>
+    </ul>
+  
+    <div id="navbarSearch" class="navbar-search w-100 collapse">
+      <input class="form-control w-100 rounded-0 border-0" type="text" placeholder="Search" aria-label="Search">
+    </div>
+
+  </div>
+</nav>
+
+</div>
+
+<script>
+let avatarElement = document.querySelector("#avatar");
+if (avatarElement) {
+  let profilePicture = "{{.User.picture}}";
+  if (profilePicture && profilePicture != "AA==") {  // AA=== is the result of byte 0 in the database, in case the field is set to NOT NULL
+    avatarElement.src = 'data:image/png;base64,' + profilePicture;
+  } else {
+    avatarElement.src = '/static/img/avatar.png';
+  }
+}
+</script>
+
+{{ end }}

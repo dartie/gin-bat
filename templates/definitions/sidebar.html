@@ -1,0 +1,214 @@
+{{ define "Sidebar" }}
+      <!-- Left Sidebar -->
+      <div id="LeftSidebar" class="sidebar border border-right col-md-3 col-lg-2 p-0 bg-body-tertiary collapse collapse-horizontal show scroll">
+        <div class="offcanvas-md offcanvas-end bg-body-tertiary" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="sidebarMenuLabel">Company name</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="#">
+                  <svg class="bi"><use xlink:href="#house-fill"></use></svg>
+                  Dashboard
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#file-earmark"></use></svg>
+                  Orders
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#cart"></use></svg>
+                  Products
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#people"></use></svg>
+                  Customers
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#graph-up"></use></svg>
+                  Reports
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#puzzle"></use></svg>
+                  Integrations
+                </a>
+              </li>
+            </ul>
+
+            <!-- Collapse -->
+            <!--
+              Trigger element: 
+              data-bs-toggle="collapse" data-bs-target="#collapseWidthExample" aria-expanded="false" aria-controls="collapseWidthExample"
+
+              Collapse element:
+              class="collapse" id="collapseWidthExample"
+            -->
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#" data-bs-toggle="collapse" data-bs-target="#collapseTarget1" aria-expanded="false" aria-controls="collapseTarget1">
+                  <svg class="bi"><use xlink:href="#graph-up"></use></svg>
+                  Main Item
+                </a>
+              </li>
+
+
+              <li class="nav-item collapse ms-3" id="collapseTarget1">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#graph-up"></use></svg>
+                  Sub-Item
+                </a>
+              </li>
+            </ul>
+
+            <!-- Nested -->
+            <!--
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#" data-bs-toggle="collapse" data-bs-target="#collapseTarget2" aria-expanded="false" aria-controls="collapseTarget2">
+                  <svg class="bi"><use xlink:href="#graph-up"></use></svg>
+                  Main Item
+                </a>
+              </li>
+
+              <li class="nav-item collapse ms-3" id="collapseTarget2" data-bs-toggle="collapse" data-bs-target="#collapseTarget3" aria-expanded="false" aria-controls="collapseTarget3">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#graph-up"></use></svg>
+                  Sub-Item
+                </a>
+              </li>
+
+              <li class="nav-item collapse ms-5" id="collapseTarget3">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#graph-up"></use></svg>
+                  Sub-Item
+                </a>
+              </li>
+            </ul>
+            -->
+            <!-- -->
+
+            <!-- Tree view -->
+            <ul id="myUL" class="ms-3">
+              <li><span class="caret">Beverages</span>
+                <ul class="nested">
+                  <li>Water</li>
+                  <li>Coffee</li>
+                  <li><span class="caret">Tea</span>
+                    <ul class="nested">
+                      <li>Black Tea</li>
+                      <li>White Tea</li>
+                      <li><span class="caret">Green Tea</span>
+                        <ul class="nested">
+                          <li>Sencha</li>
+                          <li>Gyokuro</li>
+                          <li>Matcha</li>
+                          <li>Pi Lo Chun</li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <!-- -->
+
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-body-secondary text-uppercase">
+              <span>Saved reports</span>
+              <a class="link-secondary" href="#" aria-label="Add a new report">
+                <svg class="bi"><use xlink:href="#plus-circle"></use></svg>
+              </a>
+            </h6>
+            <ul class="nav flex-column mb-auto">
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#file-earmark-text"></use></svg>
+                  Current month
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#file-earmark-text"></use></svg>
+                  Last quarter
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#file-earmark-text"></use></svg>
+                  Social engagement
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#file-earmark-text"></use></svg>
+                  Year-end sale
+                </a>
+              </li>
+            </ul>
+
+            <hr class="my-3">
+            <!-- scroll -->
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-body-secondary text-uppercase">
+              <span>Saved reports</span>
+              <a class="link-secondary" href="#" aria-label="Add a new report">
+                <svg class="bi"><use xlink:href="#plus-circle"></use></svg>
+              </a>
+            </h6>
+            <ul class="nav flex-column mb-auto">
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#file-earmark-text"></use></svg>
+                  Current month
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#file-earmark-text"></use></svg>
+                  Last quarter
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#file-earmark-text"></use></svg>
+                  Social engagement
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#file-earmark-text"></use></svg>
+                  Year-end sale
+                </a>
+              </li>
+            </ul>
+
+            <hr class="my-3">
+
+            <ul class="nav flex-column mb-auto">
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="#">
+                  <svg class="bi"><use xlink:href="#gear-wide-connected"></use></svg>
+                  Settings
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link d-flex align-items-center gap-2" href="/logout">
+                  <svg class="bi"><use xlink:href="#door-closed"></use></svg>
+                  Sign out
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+{{ end }}
+

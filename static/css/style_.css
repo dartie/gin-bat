@@ -1,0 +1,121 @@
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+/* Dashboard */
+body {
+    font-size: .875rem;
+}
+  
+.feather {
+width: 16px;
+height: 16px;
+vertical-align: text-bottom;
+}
+
+
+/* Other */
+.login-input {
+    padding: 20px;
+}
+
+.btn-primary {
+    background: #2f6db5;
+}
+
+
+/* Visible */
+.invisible {
+    visibility: hidden;
+}
+
+.visible {
+    visibility: visible;
+}
+
+/* Textarea */
+.adapt_height_to_content {
+    border: ridge 2px;
+    padding: 5px;
+    width: 20em;
+    min-height: 5em;
+    overflow: auto;
+}
+
+.mono {
+  font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace !important;
+}
+
+.iconfile svg {
+    height: 40px;
+    width: 40px;
+    stroke: currentColor;
+}
+
+.invert-svg { /* svg on an img tag */
+  -webkit-filter: invert(.75); /* safari 6.0 - 9.0 */
+          filter: invert(.75);
+}
+
+.nowrap {
+    white-space: pre;
+}
+
+.wrap {
+    white-space: pre-line;
+}
+
+/* Topbar*/
+.avatar {
+    border-radius: 50%;
+    width: 40px;
+}
+
+/* Set icons in dropdown */
+.dropdown-item img {
+    width: 30px;
+}
+
+/* Form login */
+.form-signin {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+}
+
+th {
+    cursor: pointer;
+}
+
+/*
+  DataTable
+*/
+
+/* Enable DataTable row highlighting */
+.table {
+    --bs-table-hover-bg: #95D1CC; /* #ffa */
+}
+
+/* Style for rows with no first response */
+.first-response-false {
+    background-color: #e6e4ff !important; /* gold, #ffe4e4 ; #e6e4ff */
+}
+/* Style for rows with no first response */
+.unassigned-no-first-response {
+    background-color: #FFA8A8 !important;  /* red */
+}
+/* Style for rows with no first response */
+.no-first-response {
+    background-color: #FDD7AA !important; /* orange */
+}
+/* Style for rows with no first response */
+.unassigned {
+    background-color: #F6FFA4 !important; /* yellow */
+}

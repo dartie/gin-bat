@@ -1,0 +1,34 @@
+{{ define "Footer" }}
+          
+    </main>
+
+    </div>
+    </div>
+    <script>
+    var toggler = document.getElementsByClassName("caret");
+    var i;
+
+    for (i = 0; i < toggler.length; i++) {
+      toggler[i].addEventListener("click", function() {
+        this.parentElement.querySelector(".nested").classList.toggle("active");
+        this.classList.toggle("caret-down");
+      });
+    }
+    </script>
+
+    <script>
+        var alertList = document.querySelectorAll('.alert')
+        alertList.forEach(function (alert) {
+            new bootstrap.Alert(alert)
+        })
+    </script>
+
+    {{template "Alert" . }}
+    
+    <script>
+        {{- /*% Gin-Redirect does not support variables, so in order to render a page and redirect, use the below javascript workaround %*/ -}}
+        {{ if .Url }}
+        window.history.pushState("", "", '{{.Url}}');
+        {{ end }}
+    </script>
+{{ end }}

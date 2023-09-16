@@ -4,8 +4,8 @@
     "debug-mode": "false",
 
     // database_type: 
-    // options available: "sqlite3", "postgres"
-    "database_type": "sqlite3",
+    // options available: "sqlite", "postgres"
+    "database_type": "sqlite",
     
     // database_connection
     // Sqlite: "./db.sqlite3"
